@@ -17,7 +17,10 @@ String? _validatePrice(String? v) {
 }
 
 class EncodeScreen extends ConsumerStatefulWidget {
-  const EncodeScreen({super.key});
+  const EncodeScreen({super.key, this.initialBarcode});
+
+  /// Pre-fills the barcode field (e.g. from Read's "not found" shortcut).
+  final String? initialBarcode;
 
   @override
   ConsumerState<EncodeScreen> createState() => _EncodeScreenState();
@@ -32,6 +35,12 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
 
   /// Set when the barcode matches a saved item; Save then updates it.
   Item? _editing;
+
+  @override
+  void initState() {
+    super.initState();
+    _barcode.text = widget.initialBarcode ?? '';
+  }
 
   @override
   void dispose() {

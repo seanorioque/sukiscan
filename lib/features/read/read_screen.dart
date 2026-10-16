@@ -5,6 +5,7 @@ import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
 import '../../shared/scanner_view.dart';
+import '../encode/encode_screen.dart';
 
 typedef ScannerBuilder = Widget Function(void Function(String code) onScan);
 
@@ -34,6 +35,21 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     setState(() => _item = item);
   }
 
+  Future<void> _encode(String code) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => EncodeScreen(initialBarcode: code),
+      ),
+    );
+    // The item may exist now; forget the last scan so rescanning looks it up again.
+    if (!mounted) return;
+    setState(() {
+      _code = null;
+      _item = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +59,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
           Expanded(flex: 3, child: widget.scannerBuilder(_onScan)),
           Expanded(
             flex: 2,
-            child: _Result(code: _code, item: _item),
+            child: _Result(code: _code, item: _item, onEncode: _encode),
           ),
         ],
       ),
@@ -52,10 +68,15 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
 }
 
 class _Result extends StatelessWidget {
-  const _Result({required this.code, required this.item});
+  const _Result({
+    required this.code,
+    required this.item,
+    required this.onEncode,
+  });
 
   final String? code;
   final Item? item;
+  final void Function(String code) onEncode;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +91,11 @@ class _Result extends StatelessWidget {
           Text('Not found', style: text.headlineSmall),
           const SizedBox(height: 4),
           Text(code!),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () => onEncode(code!),
+            child: const Text('Not found — encode this item?'),
+          ),
         ],
       );
     } else {

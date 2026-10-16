@@ -5,6 +5,9 @@ class RecordingFeedback implements AppFeedback {
   final events = <String>[];
 
   @override
+  Beep get beep => throw UnimplementedError('RecordingFeedback plays nothing');
+
+  @override
   void scan() => events.add('scan');
 
   @override

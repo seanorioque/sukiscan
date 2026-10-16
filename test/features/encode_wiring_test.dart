@@ -6,6 +6,7 @@ import 'package:sukiscan/core/clock.dart';
 import 'package:sukiscan/core/db.dart';
 import 'package:sukiscan/data/item_repository.dart';
 import 'package:sukiscan/features/encode/encode_screen.dart';
+import 'package:sukiscan/shared/app_feedback.dart';
 
 Finder field(String label) => find.widgetWithText(TextFormField, label);
 
@@ -30,6 +31,8 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(db),
           clockProvider.overrideWithValue(() => 42),
+          // Real feedback, but no audio plugin in tests.
+          feedbackProvider.overrideWithValue(AppFeedback(beep: (_) async {})),
         ],
         child: const MaterialApp(home: EncodeScreen()),
       ),

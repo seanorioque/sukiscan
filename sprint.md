@@ -106,8 +106,8 @@ M0 → M1 → M2 → M3 (each depends on the previous). Do M1 tests alongside th
 - [x] Tests: newer wins, older ignored, deletes applied, new items inserted, failure rolls everything back
 - [x] Preview counts ("X new, Y updated, Z deleted") before merging
 - [x] `send_screen.dart`: QR carousel auto-advancing ~500 ms, manual paging, frame counter
-- [ ] `receive_screen.dart`: `ScannerView(formats: qrFormats)`, progress `n / total`, preview, **Confirm** to merge
-- [ ] Error states: wrong/foreign QR, checksum failure rejects the whole transfer, cancel midway writes nothing
+- [x] `receive_screen.dart`: `ScannerView(formats: qrFormats)`, progress `n / total`, preview, **Confirm** to merge
+- [x] Error states: wrong/foreign QR, checksum failure rejects the whole transfer, cancel midway writes nothing
 
 **Done when:** two phones sync a 100-item catalog successfully.
 

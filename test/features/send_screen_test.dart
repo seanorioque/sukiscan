@@ -7,24 +7,7 @@ import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/domain/sync_codec.dart';
 import 'package:sukiscan/features/sync/send_screen.dart';
 
-class FakeSyncRepo implements SyncRepository {
-  FakeSyncRepo(this.items);
-  final List<Item> items;
-  bool fail = false;
-
-  @override
-  Future<List<Item>> exportAll() async {
-    if (fail) throw StateError('db down');
-    return items;
-  }
-
-  @override
-  Future<MergeSummary> preview(List<Item> incoming) =>
-      throw UnimplementedError();
-
-  @override
-  Future<MergeSummary> merge(List<Item> incoming) => throw UnimplementedError();
-}
+import '../helpers/fake_sync_repo.dart';
 
 List<Item> catalog(int n) => [
   for (var i = 0; i < n; i++)
@@ -176,7 +159,7 @@ void main() {
   });
 
   testWidgets('a load failure shows an error', (tester) async {
-    await pump(tester, FakeSyncRepo([])..fail = true);
+    await pump(tester, FakeSyncRepo([])..failExport = true);
     await tester.pump();
 
     expect(find.byType(QrImageView), findsNothing);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'receive_screen.dart';
 import 'send_screen.dart';
 
 /// Sync menu: send this phone's items to another phone, or receive from one.
@@ -29,17 +30,20 @@ class SyncScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Receive arrives with receive_screen.dart.
-          const Card(
+          Card(
             child: ListTile(
-              enabled: false,
-              contentPadding: EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                 horizontal: 20,
                 vertical: 12,
               ),
-              leading: Icon(Icons.qr_code_scanner, size: 36),
-              title: Text('Receive items'),
-              subtitle: Text('Not available yet'),
+              leading: const Icon(Icons.qr_code_scanner, size: 36),
+              title: const Text('Receive items'),
+              subtitle: const Text('Scan the QR codes on another phone'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute(builder: (_) => const ReceiveScreen()),
+              ),
             ),
           ),
         ],

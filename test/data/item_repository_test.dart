@@ -56,9 +56,9 @@ void main() {
     now = 3000;
     await repo.softDelete(noodles.barcode);
     expect(await repo.get(noodles.barcode), isNull);
-    final raw = (await repo.get(noodles.barcode, includeDeleted: true))!;
-    expect(raw.deleted, isTrue);
-    expect(raw.updatedAt, 3000);
+    final raw = (await db.query('items')).single; // the row is still there
+    expect(raw['deleted'], 1);
+    expect(raw['updated_at'], 3000);
   });
 
   test('countLive counts saved items and ignores soft-deleted ones', () async {

@@ -13,14 +13,8 @@ enum AppTab { encode, read, sell }
 /// selected tab is built, so at most one camera is ever running.
 class AppShell extends ConsumerStatefulWidget {
   /// [scannerBuilder] replaces the camera on Read and Sell (for tests).
-  /// Selling is the everyday job, so the app opens on [initialTab] = sell.
-  const AppShell({
-    super.key,
-    this.initialTab = AppTab.sell,
-    this.scannerBuilder,
-  });
+  const AppShell({super.key, this.scannerBuilder});
 
-  final AppTab initialTab;
   final ScannerBuilder? scannerBuilder;
 
   @override
@@ -28,7 +22,8 @@ class AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
-  late int _index = widget.initialTab.index;
+  // Selling is the everyday job, so the app opens on Sell.
+  int _index = AppTab.sell.index;
 
   Widget _tab() {
     final scanner = widget.scannerBuilder;

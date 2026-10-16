@@ -244,9 +244,6 @@ class SyncReassembler {
   int? _payloadLength;
   String? _checksum;
 
-  /// Session we locked onto; null until the first valid frame.
-  String? get sessionId => _sessionId;
-
   /// Frames stored so far (shown as "received / total").
   int get received => _chunks.length;
 
@@ -255,12 +252,8 @@ class SyncReassembler {
 
   bool get isComplete => _total != null && _chunks.length == _total;
 
-  /// Length and CRC-32 of the full payload; known once frame 0 has arrived.
-  int? get payloadLength => _payloadLength;
-  String? get checksum => _checksum;
-
   /// The chunks joined in order once every frame is in, else null.
-  /// NOT yet verified against [checksum] / [payloadLength].
+  /// NOT yet verified: [decode] checks it against frame 0's length and CRC-32.
   String? get assembled => isComplete
       ? [for (var i = 0; i < _total!; i++) _chunks[i]!].join()
       : null;

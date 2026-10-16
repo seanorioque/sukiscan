@@ -7,6 +7,7 @@ import '../../data/item_repository.dart';
 import '../../domain/item.dart';
 import '../../shared/app_feedback.dart';
 import '../../shared/scanner_view.dart';
+import '../../shared/ui_helpers.dart';
 
 String? _required(String? v, String message) =>
     (v ?? '').trim().isEmpty ? message : null;
@@ -112,9 +113,8 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
     return true;
   }
 
-  void _snack(String message) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(message)));
+  void _snack(String message) =>
+      ScaffoldMessenger.of(context).showMessage(message);
 
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
@@ -152,24 +152,13 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
 
   Future<void> _delete() async {
     final item = _editing!;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete item?'),
-        content: Text('Remove "${item.name}" from your items?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final ok = await confirm(
+      context,
+      title: 'Delete item?',
+      message: 'Remove "${item.name}" from your items?',
+      yesLabel: 'Delete',
     );
-    if (ok != true) return;
+    if (!ok) return;
     try {
       await ref.read(itemRepositoryProvider).softDelete(item.barcode);
     } catch (_) {
@@ -252,9 +241,7 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-              ],
+              inputFormatters: moneyInputFormatters,
               decoration: const InputDecoration(
                 labelText: 'Price',
                 prefixText: '₱ ',

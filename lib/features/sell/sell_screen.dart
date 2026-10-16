@@ -10,6 +10,7 @@ import '../../shared/brand_app_bar.dart';
 import '../../shared/camera_card.dart';
 import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
+import '../../shared/ui_helpers.dart';
 import '../encode/encode_screen.dart';
 import 'cart_provider.dart';
 import 'checkout_sheet.dart';
@@ -58,13 +59,9 @@ class _SellScreenState extends ConsumerState<SellScreen> {
       // Nothing was added; the cooldown lets the same label be scanned again.
       if (mounted) {
         ref.read(feedbackProvider).error();
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(
-              content: Text('Could not look up that item. Please try again.'),
-            ),
-          );
+        ScaffoldMessenger.of(
+          context,
+        ).showMessage('Could not look up that item. Please try again.');
       }
       return;
     }
@@ -77,24 +74,13 @@ class _SellScreenState extends ConsumerState<SellScreen> {
     ref.read(feedbackProvider).error();
     _busy = true;
     try {
-      final encode = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Item not found'),
-          content: Text('No item has barcode $code. Encode it now?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Encode item'),
-            ),
-          ],
-        ),
+      final encode = await confirm(
+        context,
+        title: 'Item not found',
+        message: 'No item has barcode $code. Encode it now?',
+        yesLabel: 'Encode item',
       );
-      if (encode == true && mounted) {
+      if (encode && mounted) {
         await Navigator.push<void>(
           context,
           MaterialPageRoute(builder: (_) => EncodeScreen(initialBarcode: code)),
@@ -266,24 +252,13 @@ class _CartList extends ConsumerWidget {
 }
 
 Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Clear cart?'),
-      content: const Text('Remove all items from this sale?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Clear'),
-        ),
-      ],
-    ),
+  final ok = await confirm(
+    context,
+    title: 'Clear cart?',
+    message: 'Remove all items from this sale?',
+    yesLabel: 'Clear',
   );
-  if (ok == true) ref.read(cartProvider.notifier).clear();
+  if (ok) ref.read(cartProvider.notifier).clear();
 }
 
 class _TotalBar extends StatelessWidget {

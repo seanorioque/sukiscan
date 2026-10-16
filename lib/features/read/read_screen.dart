@@ -9,6 +9,7 @@ import '../../shared/brand_app_bar.dart';
 import '../../shared/camera_card.dart';
 import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
+import '../../shared/ui_helpers.dart';
 import '../encode/encode_screen.dart';
 
 Widget _defaultScanner(void Function(String code) onScan) =>
@@ -39,13 +40,9 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
       if (!mounted) return;
       _code = null; // forget it, so scanning the same label again retries
       ref.read(feedbackProvider).error();
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('Could not look up that item. Please try again.'),
-          ),
-        );
+      ScaffoldMessenger.of(
+        context,
+      ).showMessage('Could not look up that item. Please try again.');
       return;
     }
     if (!mounted || code != _code) return; // a newer scan won the race

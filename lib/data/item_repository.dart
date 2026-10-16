@@ -34,11 +34,11 @@ class ItemRepository {
   final Database _db;
   final Clock _now;
 
-  /// Soft-deleted items are treated as absent unless [includeDeleted] is set.
-  Future<Item?> get(String barcode, {bool includeDeleted = false}) async {
+  /// Soft-deleted items count as absent.
+  Future<Item?> get(String barcode) async {
     final rows = await _db.query(
       'items',
-      where: includeDeleted ? 'barcode = ?' : 'barcode = ? AND deleted = 0',
+      where: 'barcode = ? AND deleted = 0',
       whereArgs: [barcode],
     );
     return rows.isEmpty ? null : Item.fromMap(rows.first);

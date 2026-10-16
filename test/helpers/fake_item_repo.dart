@@ -13,7 +13,7 @@ class FakeItemRepo implements ItemRepository {
   bool failWrites = false;
 
   @override
-  Future<Item?> get(String barcode, {bool includeDeleted = false}) async {
+  Future<Item?> get(String barcode) async {
     lookups++;
     if (failReads) throw StateError('db down');
     return store[barcode];

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+
+import 'scan_cooldown.dart';
 
 /// Formats for Encode / Read / Sell (plan §6).
 const retailFormats = [
@@ -21,10 +24,18 @@ class ScannerView extends StatefulWidget {
     super.key,
     required this.onScan,
     this.formats = retailFormats,
+    this.cooldown = Duration.zero,
+    this.feedback = false,
   });
 
   final void Function(String code) onScan;
   final List<BarcodeFormat> formats;
+
+  /// Minimum time before the same barcode is reported again (Sell uses ~1.5 s).
+  final Duration cooldown;
+
+  /// Click sound + haptic tick on every scan that is reported.
+  final bool feedback;
 
   @override
   State<ScannerView> createState() => _ScannerViewState();
@@ -35,6 +46,8 @@ class _ScannerViewState extends State<ScannerView> {
     formats: widget.formats,
   );
 
+  late final _cooldown = ScanCooldown(widget.cooldown);
+
   @override
   void dispose() {
     _controller.dispose();
@@ -44,10 +57,14 @@ class _ScannerViewState extends State<ScannerView> {
   void _onDetect(BarcodeCapture capture) {
     for (final b in capture.barcodes) {
       final code = b.rawValue;
-      if (code != null && code.isNotEmpty) {
-        widget.onScan(code);
-        return;
+      if (code == null || code.isEmpty || !_cooldown.accept(code)) continue;
+      if (widget.feedback) {
+        // ponytail: system click, not a real beep; swap in an audio package/asset if it's too quiet.
+        SystemSound.play(SystemSoundType.click);
+        HapticFeedback.mediumImpact();
       }
+      widget.onScan(code);
+      return; // one accepted scan per frame
     }
   }
 

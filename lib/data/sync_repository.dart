@@ -38,6 +38,12 @@ class SyncRepository {
 
   final Database _db;
 
+  /// Every item to send, INCLUDING soft-deleted ones so deletions propagate.
+  Future<List<Item>> exportAll() async => [
+    for (final row in await _db.query('items', orderBy: 'barcode'))
+      Item.fromMap(row),
+  ];
+
   /// What [merge] would do, without writing anything.
   Future<MergeSummary> preview(List<Item> incoming) async =>
       _plan(await _loadAll(_db), incoming).summary;

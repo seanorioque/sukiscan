@@ -4,6 +4,7 @@ import 'features/encode/encode_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/read/read_screen.dart';
 import 'features/sell/sell_screen.dart';
+import 'features/sync/sync_screen.dart';
 
 class SukiScanApp extends StatelessWidget {
   const SukiScanApp({super.key});
@@ -22,20 +23,8 @@ class SukiScanApp extends StatelessWidget {
         '/encode': (_) => const EncodeScreen(),
         '/read': (_) => const ReadScreen(),
         '/sell': (_) => const SellScreen(),
-        // Placeholder until the sync module lands (M6).
-        '/sync': (_) => const _ComingSoon('Sync'),
+        '/sync': (_) => const SyncScreen(),
       },
     );
   }
-}
-
-class _ComingSoon extends StatelessWidget {
-  const _ComingSoon(this.title);
-  final String title;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(title)),
-    body: const Center(child: Text('Coming soon')),
-  );
 }

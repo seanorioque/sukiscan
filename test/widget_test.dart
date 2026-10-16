@@ -9,8 +9,9 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
 
-    await tester.tap(find.text('Sync')); // still a placeholder page
+    // Sync is the one module that needs no camera or database to open.
+    await tester.tap(find.text('Sync'));
     await tester.pumpAndSettle();
-    expect(find.text('Coming soon'), findsOneWidget);
+    expect(find.text('Send items'), findsOneWidget);
   });
 }

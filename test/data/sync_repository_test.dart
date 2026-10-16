@@ -212,6 +212,19 @@ void main() {
     expect(await row('BAD'), isNull);
   });
 
+  test(
+    'exportAll includes soft-deleted items so deletions can be sent',
+    () async {
+      await seed(item('B', at: 100));
+      await seed(item('A', at: 200, deleted: true));
+
+      final all = await repo.exportAll();
+      expect(all.map((i) => i.barcode), ['A', 'B']);
+      expect(all.first.deleted, isTrue);
+      expect(all.first.updatedAt, 200);
+    },
+  );
+
   test('merging an empty transfer is a no-op', () async {
     final s = await repo.merge([]);
     expect(s.changes + s.unchanged, 0);

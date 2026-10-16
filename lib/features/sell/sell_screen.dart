@@ -35,7 +35,17 @@ class SellScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Sell')),
+      appBar: AppBar(
+        title: const Text('Sell'),
+        actions: [
+          if (!cart.isEmpty)
+            IconButton(
+              tooltip: 'Clear cart',
+              icon: const Icon(Icons.delete_sweep_outlined),
+              onPressed: () => _confirmClear(context, ref),
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -50,27 +60,74 @@ class SellScreen extends ConsumerWidget {
   }
 }
 
-class _CartList extends StatelessWidget {
+class _CartList extends ConsumerWidget {
   const _CartList(this.cart);
 
   final Cart cart;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (cart.isEmpty) {
       return const Center(child: Text('Scan items to add them to the sale'));
     }
+    final notifier = ref.read(cartProvider.notifier);
     return ListView(
       children: [
         for (final l in cart.lines)
           ListTile(
             title: Text(l.name),
-            subtitle: Text('${l.qty} × ${formatCents(l.unitPriceCents)}'),
-            trailing: Text(formatCents(l.totalCents)),
+            subtitle: Text(
+              '${formatCents(l.unitPriceCents)} each · ${formatCents(l.totalCents)}',
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Decrease',
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: () => notifier.decrement(l.barcode),
+                ),
+                Text(
+                  '${l.qty}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                IconButton(
+                  tooltip: 'Increase',
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () => notifier.increment(l.barcode),
+                ),
+                IconButton(
+                  tooltip: 'Remove line',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => notifier.remove(l.barcode),
+                ),
+              ],
+            ),
           ),
       ],
     );
   }
+}
+
+Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Clear cart?'),
+      content: const Text('Remove all items from this sale?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Clear'),
+        ),
+      ],
+    ),
+  );
+  if (ok == true) ref.read(cartProvider.notifier).clear();
 }
 
 class _TotalBar extends StatelessWidget {

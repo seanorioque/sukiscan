@@ -10,4 +10,8 @@ class CartNotifier extends Notifier<Cart> {
   Cart build() => const Cart();
 
   void add(Item item) => state = state.add(item);
+  void increment(String barcode) => state = state.increment(barcode);
+  void decrement(String barcode) => state = state.decrement(barcode);
+  void remove(String barcode) => state = state.remove(barcode);
+  void clear() => state = state.clear();
 }

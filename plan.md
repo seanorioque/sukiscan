@@ -224,8 +224,8 @@ Layering is UI → Riverpod providers → repositories → SQLite. The domain la
 - Merge: newer wins, older ignored, deletes applied, new items inserted
 
 ### Manual device checklist
-- [ ] Camera permission denied → clear message + retry
-- [ ] Scan EAN-13, UPC-A, Code 128 labels from real products
+- [x] Camera permission denied → clear message + retry
+- [ x] Scan EAN-13, UPC-A, Code 128 labels from real products
 - [ ] Holding one item in view adds it only once per cooldown
 - [ ] Low light / glossy packaging
 - [ ] Unknown barcode in Read and Sell

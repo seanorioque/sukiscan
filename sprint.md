@@ -15,26 +15,26 @@
 **Done when:** app runs on a real phone and the camera opens.
 
 ### M1 — Data layer
-- [ ] `core/money.dart`: parse `"12.5"` → `1250`, format → `₱12.50`, reject invalid input
-- [ ] `core/clock.dart`: injectable time source
-- [ ] `core/db.dart`: schema v1 (`items`, `sales`, `sale_items`, index) with `onCreate`/`onUpgrade`
-- [ ] `domain/item.dart` + `data/item_repository.dart` (get, upsert, soft delete)
-- [ ] Tests: money parse/format; item CRUD + soft delete via `sqflite_common_ffi`
+- [x] `core/money.dart`: parse `"12.5"` → `1250`, format → `₱12.50`, reject invalid input
+- [x] `core/clock.dart`: injectable time source
+- [x] `core/db.dart`: schema v1 (`items`, `sales`, `sale_items`, index) with `onCreate`/`onUpgrade`
+- [x] `domain/item.dart` + `data/item_repository.dart` (get, upsert, soft delete)
+- [x] Tests: money parse/format; item CRUD + soft delete via `sqflite_common_ffi`
 
 **Done when:** unit tests pass.
 
 ### M2 — Encoding
-- [ ] Encode screen: barcode (scan or type), name, price, optional stock
-- [ ] Validation: name required, price > 0, barcode not blank
-- [ ] Existing barcode → open in edit mode (no duplicate)
-- [ ] Delete button → soft delete
-- [ ] Riverpod providers wiring screen → repository
+- [x] Encode screen: barcode (scan or type), name, price, optional stock
+- [x] Validation: name required, price > 0, barcode not blank
+- [x] Existing barcode → open in edit mode (no duplicate)
+- [x] Delete button → soft delete
+- [x] Riverpod providers wiring screen → repository
 
 **Done when:** items survive an app restart.
 
 ### M3 — Reading
-- [ ] Read screen: scan → show name, price, stock
-- [ ] Not found → "Encode this item?" button opens Encode with barcode pre-filled
+- [x] Read screen: scan → show name, price, stock
+- [x] Not found → "Encode this item?" button opens Encode with barcode pre-filled
 
 **Done when:** scanning a known item shows details in under 1 s.
 

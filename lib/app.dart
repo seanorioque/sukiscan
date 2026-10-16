@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'features/encode/encode_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/read/read_screen.dart';
 
 class SukiScanApp extends StatelessWidget {
   const SukiScanApp({super.key});
@@ -16,9 +18,9 @@ class SukiScanApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (_) => const HomeScreen(),
-        // Placeholders until each module lands (M2 encode, M3 read, M4 sell, M6 sync).
-        '/encode': (_) => const _ComingSoon('Encode'),
-        '/read': (_) => const _ComingSoon('Read'),
+        '/encode': (_) => const EncodeScreen(),
+        '/read': (_) => const ReadScreen(),
+        // Placeholders until each module lands (M4 sell, M6 sync).
         '/sell': (_) => const _ComingSoon('Sell'),
         '/sync': (_) => const _ComingSoon('Sync'),
       },
@@ -32,7 +34,7 @@ class _ComingSoon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(title)),
-        body: const Center(child: Text('Coming soon')),
-      );
+    appBar: AppBar(title: Text(title)),
+    body: const Center(child: Text('Coming soon')),
+  );
 }

@@ -20,10 +20,15 @@ class HomeScreen extends StatelessWidget {
           for (final m in _menu)
             Card(
               child: ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 leading: Icon(m.icon, size: 36),
-                title: Text(m.label, style: Theme.of(context).textTheme.titleLarge),
+                title: Text(
+                  m.label,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.pushNamed(context, m.route),
               ),

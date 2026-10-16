@@ -29,7 +29,21 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
   Future<void> _onScan(String code) async {
     if (code == _code) return; // the camera reports the same code every frame
     _code = code;
-    final item = await ref.read(itemRepositoryProvider).get(code);
+    final Item? item;
+    try {
+      item = await ref.read(itemRepositoryProvider).get(code);
+    } catch (_) {
+      if (!mounted) return;
+      _code = null; // forget it, so scanning the same label again retries
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Could not look up that item. Please try again.'),
+          ),
+        );
+      return;
+    }
     if (!mounted || code != _code) return; // a newer scan won the race
     setState(() => _item = item);
   }

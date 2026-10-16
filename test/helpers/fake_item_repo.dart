@@ -8,9 +8,14 @@ class FakeItemRepo implements ItemRepository {
   var lookups = 0;
   var upserts = 0;
 
+  /// Make reads (get) or writes (upsert, softDelete) throw, like a failing database.
+  bool failReads = false;
+  bool failWrites = false;
+
   @override
   Future<Item?> get(String barcode, {bool includeDeleted = false}) async {
     lookups++;
+    if (failReads) throw StateError('db down');
     return store[barcode];
   }
 
@@ -19,12 +24,14 @@ class FakeItemRepo implements ItemRepository {
 
   @override
   Future<Item> upsert(Item item) async {
+    if (failWrites) throw StateError('db down');
     upserts++;
     return store[item.barcode] = item;
   }
 
   @override
   Future<void> softDelete(String barcode) async {
+    if (failWrites) throw StateError('db down');
     deleted.add(barcode);
     store.remove(barcode);
   }

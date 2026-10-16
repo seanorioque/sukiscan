@@ -14,4 +14,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Send items'), findsOneWidget);
   });
+
+  testWidgets('startup error screen explains and offers Try again', (
+    tester,
+  ) async {
+    var retried = 0;
+    await tester.pumpWidget(StartupErrorApp(onRetry: () => retried++));
+
+    expect(find.text("SukiScan couldn't open your items"), findsOneWidget);
+    expect(find.textContaining('free storage space'), findsOneWidget);
+    expect(find.textContaining('have not been deleted'), findsOneWidget);
+
+    await tester.tap(find.text('Try again'));
+    expect(retried, 1);
+  });
 }

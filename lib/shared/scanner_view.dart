@@ -77,37 +77,56 @@ class _ScannerViewState extends State<ScannerView> {
       controller: _controller,
       onDetect: _onDetect,
       errorBuilder: (context, error) =>
-          _ScannerError(error: error, onRetry: _controller.start),
+          ScannerErrorView(error: error, onRetry: _controller.start),
     );
   }
 }
 
-class _ScannerError extends StatelessWidget {
-  const _ScannerError({required this.error, required this.onRetry});
+/// Shown instead of the camera when it can't start: says why and how to fix it.
+class ScannerErrorView extends StatelessWidget {
+  const ScannerErrorView({
+    super.key,
+    required this.error,
+    required this.onRetry,
+  });
 
   final MobileScannerException error;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    final denied = error.errorCode == MobileScannerErrorCode.permissionDenied;
+    final code = error.errorCode;
+    final (icon, message) = switch (code) {
+      MobileScannerErrorCode.permissionDenied => (
+        Icons.no_photography,
+        'Camera permission is needed to scan barcodes.\n'
+            'Allow it in the prompt, or in Settings > Apps > SukiScan > Permissions.',
+      ),
+      MobileScannerErrorCode.unsupported => (
+        Icons.no_photography,
+        "This phone's camera can't be used for scanning. "
+            'You can still type barcodes in by hand.',
+      ),
+      _ => (
+        Icons.error_outline,
+        'The camera could not start. '
+            'Close other apps that may be using it, then try again.',
+      ),
+    };
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(denied ? Icons.no_photography : Icons.error_outline, size: 48),
+            Icon(icon, size: 48),
             const SizedBox(height: 12),
-            Text(
-              denied
-                  ? 'Camera permission is needed to scan barcodes.\n'
-                        'Allow it in the prompt, or in Settings > Apps > SukiScan > Permissions.'
-                  : 'The camera could not start.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
+            Text(message, textAlign: TextAlign.center),
+            // Retrying can't fix a phone that doesn't support scanning.
+            if (code != MobileScannerErrorCode.unsupported) ...[
+              const SizedBox(height: 16),
+              FilledButton(onPressed: onRetry, child: const Text('Retry')),
+            ],
           ],
         ),
       ),

@@ -98,6 +98,27 @@ void main() {
     },
   );
 
+  testWidgets('a failed lookup is reported and nothing is added', (
+    tester,
+  ) async {
+    await pump(tester);
+    items.failReads = true;
+    scan('A');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Could not look up that item. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Item not found'), findsNothing); // not a false "unknown"
+    expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+
+    items.failReads = false;
+    scan('A'); // scanning keeps working afterwards
+    await tester.pumpAndSettle();
+    expect(find.text('Noodles'), findsOneWidget);
+  });
+
   testWidgets('scan adds a line; scanning again adds +1', (tester) async {
     await pump(tester);
 

@@ -121,6 +121,25 @@ void main() {
     expect(find.text('Gum'), findsOneWidget);
   });
 
+  testWidgets('a failed lookup is reported and the same label can be retried', (
+    tester,
+  ) async {
+    await pump(tester);
+    repo.failReads = true;
+    scan(noodles.barcode);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Could not look up that item. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Not found'), findsNothing); // not a false "not found"
+
+    repo.failReads = false;
+    scan(noodles.barcode); // same code again: not ignored as a repeat
+    await tester.pumpAndSettle();
+    expect(find.text('Pancit Canton'), findsOneWidget);
+  });
+
   testWidgets('repeated frames of the same code look up once', (tester) async {
     await pump(tester);
     scan(noodles.barcode);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/money.dart';
 import '../../data/item_repository.dart';
+import '../../domain/item.dart';
 import '../../domain/cart.dart';
 import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
@@ -47,7 +48,22 @@ class _SellScreenState extends ConsumerState<SellScreen> {
 
   Future<void> _onScan(String code) async {
     if (_busy) return;
-    final item = await ref.read(itemRepositoryProvider).get(code);
+    final Item? item;
+    try {
+      item = await ref.read(itemRepositoryProvider).get(code);
+    } catch (_) {
+      // Nothing was added; the cooldown lets the same label be scanned again.
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Could not look up that item. Please try again.'),
+            ),
+          );
+      }
+      return;
+    }
     if (!mounted || _busy) return;
     if (item != null) {
       ref.read(cartProvider.notifier).add(item);

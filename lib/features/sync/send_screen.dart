@@ -6,6 +6,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../data/sync_repository.dart';
 import '../../domain/sync_codec.dart';
+import '../../shared/empty_state.dart';
 
 /// Shows the catalog as a looping carousel of QR codes for another phone to scan.
 class SendScreen extends ConsumerStatefulWidget {
@@ -90,7 +91,18 @@ class _SendScreenState extends ConsumerState<SendScreen> {
 
   Widget _body(BuildContext context) {
     if (_error != null) {
-      return const Center(child: Text('Could not load your items.'));
+      return EmptyState(
+        icon: Icons.error_outline,
+        message: 'Could not load your items. Please try again.',
+        actionLabel: 'Try again',
+        onAction: () {
+          setState(() {
+            _error = null;
+            _frames = null; // back to the loading spinner
+          });
+          _load();
+        },
+      );
     }
     final frames = _frames;
     if (frames == null) {

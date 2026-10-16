@@ -1,10 +1,4 @@
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-
-/// Keyboard filter for money fields: digits, '.' and ',' only (see [parseCents]).
-final moneyInputFormatters = [
-  FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-];
 
 final _pesos = NumberFormat.decimalPattern('en_US');
 final _input = RegExp(r'^(\d+)(?:\.(\d{1,2}))?$');

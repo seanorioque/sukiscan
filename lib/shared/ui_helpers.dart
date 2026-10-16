@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+/// Keyboard filter for money fields: digits, '.' and ',' only (see `parseCents`).
+final moneyInputFormatters = [
+  FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+];
 
 extension ShowMessage on ScaffoldMessengerState {
   /// Replaces any snackbar still showing with [text].

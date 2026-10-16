@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import '../core/clock.dart';
 import '../core/db.dart';
 import '../domain/item.dart';
+import '../domain/items_csv.dart';
 
 final itemRepositoryProvider = Provider(
   (ref) =>
@@ -54,6 +55,39 @@ class ItemRepository {
     );
     return saved;
   }
+
+  /// Saves every row of a CSV import in ONE transaction: if anything fails,
+  /// nothing is written. A barcode that already exists is updated (and a
+  /// deleted one comes back); a blank stock keeps the existing stock, or is 0
+  /// for a new item. Rows are stamped with the current time so a later sync
+  /// sends them on.
+  Future<({int created, int updated})> importItems(List<CsvItem> rows) =>
+      _db.transaction((txn) async {
+        var created = 0, updated = 0;
+        final now = _now();
+        for (final row in rows) {
+          final found = await txn.query(
+            'items',
+            where: 'barcode = ?',
+            whereArgs: [row.barcode],
+          );
+          final live = found.isNotEmpty && found.first['deleted'] == 0;
+          await txn.insert(
+            'items',
+            Item(
+              barcode: row.barcode,
+              name: row.name,
+              priceCents: row.priceCents,
+              stockQty:
+                  row.stockQty ?? (live ? found.first['stock_qty'] as int : 0),
+              updatedAt: now,
+            ).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          live ? updated++ : created++;
+        }
+        return (created: created, updated: updated);
+      });
 
   Future<List<Item>> allLive() async => [
     for (final row in await _db.query(

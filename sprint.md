@@ -24,7 +24,7 @@
 **Done when:** unit tests pass.
 
 ### M2 — Encoding
-- [ ] Encode screen: barcode (scan or type), name, price, optional stock
+- [x] Encode screen: barcode (scan or type), name, price, optional stock
 - [ ] Validation: name required, price > 0, barcode not blank
 - [ ] Existing barcode → open in edit mode (no duplicate)
 - [ ] Delete button → soft delete

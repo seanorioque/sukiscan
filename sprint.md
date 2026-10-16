@@ -7,9 +7,9 @@
 ## Tasks
 
 ### M0 — Project setup
-- [ ] `flutter create` (Android only) and add packages from plan §3
-- [ ] Add CAMERA permission + `uses-feature` to AndroidManifest; set `minSdk`
-- [ ] `app.dart` with theme + routes; `home` screen with menu (Encode, Read, Sell, Sync)
+- [x] `flutter create` (Android only) and add packages from plan §3
+- [x] Add CAMERA permission + `uses-feature` to AndroidManifest; set `minSdk` (Flutter default 24 ≥ mobile_scanner's 23)
+- [x] `app.dart` with theme + routes; `home` screen with menu (Encode, Read, Sell, Sync)
 - [ ] `shared/scanner_view.dart`: `MobileScanner` wrapper with format list, permission-denied message + retry
 
 **Done when:** app runs on a real phone and the camera opens.

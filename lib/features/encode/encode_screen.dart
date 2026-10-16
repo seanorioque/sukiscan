@@ -89,6 +89,36 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
         );
     if (!mounted) return;
     _snack('Item saved');
+    _clearForm();
+  }
+
+  Future<void> _delete() async {
+    final item = _editing!;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete item?'),
+        content: Text('Remove "${item.name}" from your items?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(itemRepositoryProvider).softDelete(item.barcode);
+    if (!mounted) return;
+    _snack('Item deleted');
+    _clearForm();
+  }
+
+  void _clearForm() {
     _form.currentState!.reset();
     for (final c in [_barcode, _name, _price, _stock]) {
       c.clear();
@@ -163,6 +193,14 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
             ),
             const SizedBox(height: 24),
             FilledButton(onPressed: _save, child: const Text('Save')),
+            if (_editing != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _delete,
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Delete'),
+              ),
+            ],
           ],
         ),
       ),

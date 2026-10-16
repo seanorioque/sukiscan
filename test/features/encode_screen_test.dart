@@ -7,6 +7,7 @@ import 'package:sukiscan/features/encode/encode_screen.dart';
 
 class FakeRepo implements ItemRepository {
   final store = <String, Item>{};
+  final deleted = <String>[];
   var upserts = 0;
 
   @override
@@ -20,7 +21,10 @@ class FakeRepo implements ItemRepository {
   }
 
   @override
-  Future<void> softDelete(String barcode) async {}
+  Future<void> softDelete(String barcode) async {
+    deleted.add(barcode);
+    store.remove(barcode);
+  }
 }
 
 Future<void> pumpScreen(WidgetTester tester, [FakeRepo? repo]) =>
@@ -124,6 +128,41 @@ void main() {
       expect(find.text('Edit item'), findsOneWidget);
     },
   );
+
+  testWidgets('delete button only shows in edit mode and soft-deletes', (
+    tester,
+  ) async {
+    final repo = FakeRepo()..store[noodles.barcode] = noodles;
+    await pumpScreen(tester, repo);
+    expect(find.text('Delete'), findsNothing);
+
+    await tester.enterText(field('Barcode'), noodles.barcode);
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text('Delete'), findsOneWidget);
+
+    // Cancel keeps the item.
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(repo.deleted, isEmpty);
+
+    // Confirm deletes and resets the form.
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Delete'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(repo.deleted, [noodles.barcode]);
+    expect(find.text('Encode item'), findsOneWidget);
+    expect(find.text('Delete'), findsNothing);
+  });
 
   testWidgets('new barcode saves as a new item', (tester) async {
     final repo = FakeRepo();

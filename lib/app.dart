@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'features/encode/encode_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/read/read_screen.dart';
+import 'features/sell/sell_screen.dart';
 
 class SukiScanApp extends StatelessWidget {
   const SukiScanApp({super.key});
@@ -20,8 +21,8 @@ class SukiScanApp extends StatelessWidget {
         '/': (_) => const HomeScreen(),
         '/encode': (_) => const EncodeScreen(),
         '/read': (_) => const ReadScreen(),
-        // Placeholders until each module lands (M4 sell, M6 sync).
-        '/sell': (_) => const _ComingSoon('Sell'),
+        '/sell': (_) => const SellScreen(),
+        // Placeholder until the sync module lands (M6).
         '/sync': (_) => const _ComingSoon('Sync'),
       },
     );

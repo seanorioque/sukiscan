@@ -9,7 +9,7 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
 
-    await tester.tap(find.text('Sell'));
+    await tester.tap(find.text('Sync')); // still a placeholder page
     await tester.pumpAndSettle();
     expect(find.text('Coming soon'), findsOneWidget);
   });

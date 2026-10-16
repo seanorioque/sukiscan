@@ -17,6 +17,9 @@ const retailFormats = [
 /// Format for Sync receive.
 const qrFormats = [BarcodeFormat.qrCode];
 
+/// Lets a screen take its scanner as a parameter so widget tests can replace the camera.
+typedef ScannerBuilder = Widget Function(void Function(String code) onScan);
+
 /// Camera preview that reports each detected barcode's raw value.
 /// Shows a message + Retry button when the camera can't start (e.g. permission denied).
 class ScannerView extends StatefulWidget {

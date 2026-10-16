@@ -4,23 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sukiscan/data/item_repository.dart';
 import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/features/read/read_screen.dart';
-
-class FakeRepo implements ItemRepository {
-  final store = <String, Item>{};
-  var lookups = 0;
-
-  @override
-  Future<Item?> get(String barcode, {bool includeDeleted = false}) async {
-    lookups++;
-    return store[barcode];
-  }
-
-  @override
-  Future<Item> upsert(Item item) async => item;
-
-  @override
-  Future<void> softDelete(String barcode) async {}
-}
+import '../helpers/fake_item_repo.dart';
 
 void main() {
   const noodles = Item(
@@ -31,10 +15,10 @@ void main() {
   );
 
   late void Function(String) scan;
-  late FakeRepo repo;
+  late FakeItemRepo repo;
 
   Future<void> pump(WidgetTester tester) async {
-    repo = FakeRepo()..store[noodles.barcode] = noodles;
+    repo = FakeItemRepo()..store[noodles.barcode] = noodles;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [itemRepositoryProvider.overrideWithValue(repo)],

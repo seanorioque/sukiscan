@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'features/encode/encode_screen.dart';
+import 'features/encode/item_list_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/read/read_screen.dart';
 import 'features/sell/sell_screen.dart';
@@ -49,7 +49,7 @@ class SukiScanApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (_) => const HomeScreen(),
-        '/encode': (_) => const EncodeScreen(),
+        '/encode': (_) => const ItemListScreen(),
         '/read': (_) => const ReadScreen(),
         '/sell': (_) => const SellScreen(),
         '/sync': (_) => const SyncScreen(),

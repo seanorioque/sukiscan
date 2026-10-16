@@ -16,6 +16,18 @@ final itemCountProvider = FutureProvider.autoDispose<int>(
   (ref) => ref.watch(itemRepositoryProvider).countLive(),
 );
 
+/// All saved (not deleted) items, A–Z by name, for the items list.
+final itemListProvider = FutureProvider.autoDispose<List<Item>>(
+  (ref) => ref.watch(itemRepositoryProvider).allLive(),
+);
+
+/// Call after anything adds, changes or removes items, so the items list and
+/// the "no items yet" hints refresh.
+void refreshItems(WidgetRef ref) {
+  ref.invalidate(itemCountProvider);
+  ref.invalidate(itemListProvider);
+}
+
 class ItemRepository {
   ItemRepository(this._db, this._now);
 
@@ -42,6 +54,15 @@ class ItemRepository {
     );
     return saved;
   }
+
+  Future<List<Item>> allLive() async => [
+    for (final row in await _db.query(
+      'items',
+      where: 'deleted = 0',
+      orderBy: 'name COLLATE NOCASE, barcode',
+    ))
+      Item.fromMap(row),
+  ];
 
   Future<int> countLive() async =>
       Sqflite.firstIntValue(

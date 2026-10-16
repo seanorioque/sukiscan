@@ -23,6 +23,13 @@ class FakeItemRepo implements ItemRepository {
   Future<int> countLive() async => store.length;
 
   @override
+  Future<List<Item>> allLive() async {
+    if (failReads) throw StateError('db down');
+    return [...store.values]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  @override
   Future<Item> upsert(Item item) async {
     if (failWrites) throw StateError('db down');
     upserts++;

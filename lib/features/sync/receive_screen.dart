@@ -120,7 +120,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
       });
       return;
     }
-    ref.invalidate(itemCountProvider); // an import can add the first items
+    refreshItems(ref); // an import can add or change many items
     ref.read(feedbackProvider).success();
     navigator.pop();
     messenger

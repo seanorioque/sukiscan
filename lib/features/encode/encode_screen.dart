@@ -18,10 +18,14 @@ String? _validatePrice(String? v) {
 }
 
 class EncodeScreen extends ConsumerStatefulWidget {
-  const EncodeScreen({super.key, this.initialBarcode});
+  const EncodeScreen({super.key, this.initialBarcode, this.editItem});
 
   /// Pre-fills the barcode field (e.g. from Read's "not found" shortcut).
   final String? initialBarcode;
+
+  /// Opens the form already filled with this saved item (from the items list).
+  /// The barcode is then fixed, and saving or deleting closes the screen.
+  final Item? editItem;
 
   @override
   ConsumerState<EncodeScreen> createState() => _EncodeScreenState();
@@ -40,7 +44,26 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
   @override
   void initState() {
     super.initState();
-    _barcode.text = widget.initialBarcode ?? '';
+    final item = widget.editItem;
+    if (item == null) {
+      _barcode.text = widget.initialBarcode ?? '';
+    } else {
+      _barcode.text = item.barcode;
+      _name.text = item.name;
+      _price.text = centsToInput(item.priceCents);
+      _stock.text = item.stockQty.toString();
+      _editing = item;
+    }
+  }
+
+  /// Items opened from the list close when done; the add form stays open so
+  /// several items can be entered in a row.
+  void _done() {
+    if (widget.editItem != null) {
+      Navigator.pop(context);
+    } else {
+      _clearForm();
+    }
   }
 
   @override
@@ -121,10 +144,10 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
       return;
     }
     if (!mounted) return;
-    ref.invalidate(itemCountProvider);
+    refreshItems(ref);
     ref.read(feedbackProvider).success();
     _snack('Item saved');
-    _clearForm();
+    _done();
   }
 
   Future<void> _delete() async {
@@ -157,10 +180,10 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
       return;
     }
     if (!mounted) return;
-    ref.invalidate(itemCountProvider);
+    refreshItems(ref);
     ref.read(feedbackProvider).success();
     _snack('Item deleted');
-    _clearForm();
+    _done();
   }
 
   void _clearForm() {
@@ -188,6 +211,9 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
               },
               child: TextFormField(
                 controller: _barcode,
+                // From the list the barcode is the item's identity: changing it
+                // would quietly create a second item, so it is locked.
+                readOnly: widget.editItem != null,
                 validator: (v) => _required(v, 'Barcode is required'),
                 onChanged: (v) {
                   if (_editing != null && v.trim() != _editing!.barcode) {
@@ -197,11 +223,18 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
                 onFieldSubmitted: (_) => _tryLookup(),
                 decoration: InputDecoration(
                   labelText: 'Barcode',
-                  suffixIcon: IconButton(
-                    tooltip: 'Scan barcode',
-                    icon: const Icon(Icons.qr_code_scanner),
-                    onPressed: _scan,
-                  ),
+                  helperText: widget.editItem != null
+                      ? "The barcode can't be changed. To fix it, delete this "
+                            'item and add it again.'
+                      : null,
+                  helperMaxLines: 2,
+                  suffixIcon: widget.editItem != null
+                      ? null
+                      : IconButton(
+                          tooltip: 'Scan barcode',
+                          icon: const Icon(Icons.qr_code_scanner),
+                          onPressed: _scan,
+                        ),
                 ),
               ),
             ),

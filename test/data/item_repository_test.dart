@@ -70,6 +70,33 @@ void main() {
     expect(await repo.countLive(), 1);
   });
 
+  test(
+    'allLive lists saved items A-Z by name and skips deleted ones',
+    () async {
+      await repo.upsert(
+        const Item(barcode: '3', name: 'zebra', priceCents: 100),
+      );
+      await repo.upsert(
+        const Item(barcode: '1', name: 'Apple', priceCents: 100),
+      );
+      await repo.upsert(
+        const Item(barcode: '2', name: 'banana', priceCents: 100),
+      );
+      await repo.upsert(
+        const Item(barcode: '4', name: 'gone', priceCents: 100),
+      );
+      await repo.softDelete('4');
+
+      final all = await repo.allLive();
+      expect(all.map((i) => i.name), [
+        'Apple',
+        'banana',
+        'zebra',
+      ]); // case-insensitive
+      expect(all.first.priceCents, 100);
+    },
+  );
+
   test('upsert revives a soft-deleted item', () async {
     await repo.upsert(noodles);
     await repo.softDelete(noodles.barcode);

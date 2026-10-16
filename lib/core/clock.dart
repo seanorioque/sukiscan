@@ -5,5 +5,6 @@ typedef Clock = int Function();
 
 /// Override in tests: `clockProvider.overrideWithValue(() => 1000)`.
 final clockProvider = Provider<Clock>(
-  (_) => () => DateTime.now().millisecondsSinceEpoch,
+  (_) =>
+      () => DateTime.now().millisecondsSinceEpoch,
 );

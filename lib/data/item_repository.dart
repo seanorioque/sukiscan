@@ -6,7 +6,8 @@ import '../core/db.dart';
 import '../domain/item.dart';
 
 final itemRepositoryProvider = Provider(
-  (ref) => ItemRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
+  (ref) =>
+      ItemRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
 
 class ItemRepository {
@@ -28,15 +29,19 @@ class ItemRepository {
   /// Insert or update by barcode, stamping `updated_at` and clearing `deleted`.
   Future<Item> upsert(Item item) async {
     final saved = item.copyWith(updatedAt: _now(), deleted: false);
-    await _db.insert('items', saved.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await _db.insert(
+      'items',
+      saved.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
     return saved;
   }
 
   /// Marks the item deleted (kept in the table so deletions propagate in sync).
   Future<void> softDelete(String barcode) => _db.update(
-        'items',
-        {'deleted': 1, 'updated_at': _now()},
-        where: 'barcode = ?',
-        whereArgs: [barcode],
-      );
+    'items',
+    {'deleted': 1, 'updated_at': _now()},
+    where: 'barcode = ?',
+    whereArgs: [barcode],
+  );
 }

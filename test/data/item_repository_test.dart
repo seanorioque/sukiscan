@@ -13,12 +13,20 @@ void main() {
 
   setUp(() async {
     now = 1000;
-    db = await openAppDb(factory: databaseFactoryFfi, path: inMemoryDatabasePath);
+    db = await openAppDb(
+      factory: databaseFactoryFfi,
+      path: inMemoryDatabasePath,
+    );
     repo = ItemRepository(db, () => now);
   });
   tearDown(() => db.close());
 
-  const noodles = Item(barcode: '4800016644290', name: 'Pancit Canton', priceCents: 1500, stockQty: 24);
+  const noodles = Item(
+    barcode: '4800016644290',
+    name: 'Pancit Canton',
+    priceCents: 1500,
+    stockQty: 24,
+  );
 
   test('get returns null when missing', () async {
     expect(await repo.get('nope'), isNull);

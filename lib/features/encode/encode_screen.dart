@@ -30,6 +30,9 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
   final _price = TextEditingController();
   final _stock = TextEditingController();
 
+  /// Set when the barcode matches a saved item; Save then updates it.
+  Item? _editing;
+
   @override
   void dispose() {
     _barcode.dispose();
@@ -44,11 +47,36 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
       context,
       MaterialPageRoute(builder: (_) => const _ScanPage()),
     );
-    if (code != null) _barcode.text = code;
+    if (code == null) return;
+    _barcode.text = code;
+    await _lookup();
   }
+
+  /// If the typed/scanned barcode already exists, load it into the form
+  /// and switch to edit mode. Returns true when an existing item was loaded.
+  Future<bool> _lookup() async {
+    final code = _barcode.text.trim();
+    if (code.isEmpty || code == _editing?.barcode) return false;
+    final item = await ref.read(itemRepositoryProvider).get(code);
+    if (!mounted || item == null) return false;
+    _name.text = item.name;
+    _price.text = centsToInput(item.priceCents);
+    _stock.text = item.stockQty.toString();
+    setState(() => _editing = item);
+    return true;
+  }
+
+  void _snack(String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
 
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
+    // Barcode typed but never left the field: don't overwrite an existing item blindly.
+    if (_editing == null && await _lookup()) {
+      _snack('Item already exists — edit it and save again');
+      return;
+    }
     await ref
         .read(itemRepositoryProvider)
         .upsert(
@@ -60,33 +88,45 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
           ),
         );
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Item saved')));
+    _snack('Item saved');
     _form.currentState!.reset();
     for (final c in [_barcode, _name, _price, _stock]) {
       c.clear();
     }
+    setState(() => _editing = null);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Encode item')),
+      appBar: AppBar(
+        title: Text(_editing == null ? 'Encode item' : 'Edit item'),
+      ),
       body: Form(
         key: _form,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            TextFormField(
-              controller: _barcode,
-              validator: (v) => _required(v, 'Barcode is required'),
-              decoration: InputDecoration(
-                labelText: 'Barcode',
-                suffixIcon: IconButton(
-                  tooltip: 'Scan barcode',
-                  icon: const Icon(Icons.qr_code_scanner),
-                  onPressed: _scan,
+            Focus(
+              onFocusChange: (focused) {
+                if (!focused) _lookup();
+              },
+              child: TextFormField(
+                controller: _barcode,
+                validator: (v) => _required(v, 'Barcode is required'),
+                onChanged: (v) {
+                  if (_editing != null && v.trim() != _editing!.barcode) {
+                    setState(() => _editing = null);
+                  }
+                },
+                onFieldSubmitted: (_) => _lookup(),
+                decoration: InputDecoration(
+                  labelText: 'Barcode',
+                  suffixIcon: IconButton(
+                    tooltip: 'Scan barcode',
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: _scan,
+                  ),
                 ),
               ),
             ),

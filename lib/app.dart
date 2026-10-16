@@ -33,7 +33,7 @@ class _ComingSoon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(title)),
-        body: const Center(child: Text('Coming soon')),
-      );
+    appBar: AppBar(title: Text(title)),
+    body: const Center(child: Text('Coming soon')),
+  );
 }

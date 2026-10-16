@@ -31,8 +31,9 @@ class ScannerView extends StatefulWidget {
 }
 
 class _ScannerViewState extends State<ScannerView> {
-  late final MobileScannerController _controller =
-      MobileScannerController(formats: widget.formats);
+  late final MobileScannerController _controller = MobileScannerController(
+    formats: widget.formats,
+  );
 
   @override
   void dispose() {
@@ -55,10 +56,8 @@ class _ScannerViewState extends State<ScannerView> {
     return MobileScanner(
       controller: _controller,
       onDetect: _onDetect,
-      errorBuilder: (context, error) => _ScannerError(
-        error: error,
-        onRetry: _controller.start,
-      ),
+      errorBuilder: (context, error) =>
+          _ScannerError(error: error, onRetry: _controller.start),
     );
   }
 }
@@ -83,7 +82,7 @@ class _ScannerError extends StatelessWidget {
             Text(
               denied
                   ? 'Camera permission is needed to scan barcodes.\n'
-                      'Allow it in the prompt, or in Settings > Apps > SukiScan > Permissions.'
+                        'Allow it in the prompt, or in Settings > Apps > SukiScan > Permissions.'
                   : 'The camera could not start.',
               textAlign: TextAlign.center,
             ),

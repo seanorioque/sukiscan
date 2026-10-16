@@ -16,6 +16,14 @@ void main() {
     }
   });
 
+  test('centsToInput round-trips through parseCents', () {
+    expect(centsToInput(1250), '12.50');
+    expect(centsToInput(5), '0.05');
+    for (final c in [0, 5, 100, 1999, 123450]) {
+      expect(parseCents(centsToInput(c)), c);
+    }
+  });
+
   test('formatCents', () {
     expect(formatCents(1250), '₱12.50');
     expect(formatCents(5), '₱0.05');

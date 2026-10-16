@@ -13,6 +13,10 @@ int? parseCents(String input) {
   return pesos * 100 + centavos;
 }
 
+/// Centavos as editable text ("12.50"): no symbol, no separators; round-trips via [parseCents].
+String centsToInput(int cents) =>
+    '${cents ~/ 100}.${(cents % 100).toString().padLeft(2, '0')}';
+
 /// Formats centavos as "₱1,234.50".
 String formatCents(int cents) {
   final abs = cents.abs();

@@ -4,13 +4,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sukiscan/data/item_repository.dart';
 import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/features/encode/encode_screen.dart';
+import 'package:sukiscan/shared/app_feedback.dart';
+
 import '../helpers/fake_item_repo.dart';
+import '../helpers/recording_feedback.dart';
+
+final feedback = RecordingFeedback();
 
 Future<void> pumpScreen(WidgetTester tester, [FakeItemRepo? repo]) =>
     tester.pumpWidget(
       ProviderScope(
         overrides: [
           itemRepositoryProvider.overrideWithValue(repo ?? FakeItemRepo()),
+          feedbackProvider.overrideWithValue(feedback),
         ],
         child: const MaterialApp(home: EncodeScreen()),
       ),
@@ -19,6 +25,8 @@ Future<void> pumpScreen(WidgetTester tester, [FakeItemRepo? repo]) =>
 Finder field(String label) => find.widgetWithText(TextFormField, label);
 
 void main() {
+  setUp(feedback.events.clear);
+
   testWidgets('encode form has fields and accepts typed input', (tester) async {
     await pumpScreen(tester);
 
@@ -170,5 +178,158 @@ void main() {
     expect(find.text('Barcode is required'), findsOneWidget);
     expect(find.text('Name is required'), findsOneWidget);
     expect(find.text('Price must be greater than 0'), findsOneWidget);
+  });
+
+  group('feedback', () {
+    Future<void> fillForm(WidgetTester tester) async {
+      await tester.enterText(field('Barcode'), '123');
+      await tester.enterText(field('Item name'), 'Gum');
+      await tester.enterText(field('Price'), '2.5');
+    }
+
+    testWidgets('a saved item gives the success cue', (tester) async {
+      await pumpScreen(tester);
+      await fillForm(tester);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(feedback.events, ['success']);
+    });
+
+    testWidgets('a failed save buzzes', (tester) async {
+      await pumpScreen(tester, FakeItemRepo()..failWrites = true);
+      await fillForm(tester);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(feedback.events, ['error']);
+    });
+
+    testWidgets('a form that fails validation stays silent', (tester) async {
+      await pumpScreen(tester);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(feedback.events, isEmpty); // the red field text is the feedback
+    });
+
+    testWidgets('a deleted item gives the success cue', (tester) async {
+      final repo = FakeItemRepo()
+        ..store['A'] = const Item(
+          barcode: 'A',
+          name: 'Noodles',
+          priceCents: 1500,
+        );
+      await pumpScreen(tester, repo);
+      await tester.enterText(field('Barcode'), 'A');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Delete'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(feedback.events, ['success']);
+    });
+  });
+
+  group('database failures', () {
+    Future<void> fillForm(WidgetTester tester) async {
+      await tester.enterText(field('Barcode'), '123');
+      await tester.enterText(field('Item name'), 'Gum');
+      await tester.enterText(field('Price'), '2.5');
+    }
+
+    testWidgets('a failed save says so and keeps the form for a retry', (
+      tester,
+    ) async {
+      final repo = FakeItemRepo()..failWrites = true;
+      await pumpScreen(tester, repo);
+      await fillForm(tester);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Could not save the item. Please try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Item saved'), findsNothing);
+      expect(find.text('Gum'), findsOneWidget); // nothing to retype
+      expect(repo.store, isEmpty);
+
+      repo.failWrites = false;
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(repo.store['123']!.name, 'Gum');
+    });
+
+    testWidgets('if the existing-item check fails, Save does not write', (
+      tester,
+    ) async {
+      final repo = FakeItemRepo();
+      await pumpScreen(tester, repo);
+      await fillForm(
+        tester,
+      ); // moving between fields already did the blur lookup
+      repo.failReads = true;
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Could not save the item. Please try again.'),
+        findsOneWidget,
+      );
+      expect(repo.upserts, 0); // never overwrite blind
+    });
+
+    testWidgets('a failed lookup on Done is reported, not swallowed', (
+      tester,
+    ) async {
+      final repo = FakeItemRepo()..failReads = true;
+      await pumpScreen(tester, repo);
+
+      await tester.enterText(field('Barcode'), '123');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Could not look up that barcode. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failed delete says so and keeps the item in edit mode', (
+      tester,
+    ) async {
+      final repo = FakeItemRepo()
+        ..store['A'] = const Item(
+          barcode: 'A',
+          name: 'Noodles',
+          priceCents: 1500,
+        );
+      await pumpScreen(tester, repo);
+      await tester.enterText(field('Barcode'), 'A');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      repo.failWrites = true;
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Delete'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Could not delete the item. Please try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Edit item'), findsOneWidget);
+      expect(repo.store.containsKey('A'), isTrue);
+    });
   });
 }

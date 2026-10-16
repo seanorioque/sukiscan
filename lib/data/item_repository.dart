@@ -10,6 +10,12 @@ final itemRepositoryProvider = Provider(
       ItemRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
 
+/// How many items are saved (not deleted). Drives the "no items yet" hints.
+/// Invalidate after anything that adds or removes items (Encode, sync import).
+final itemCountProvider = FutureProvider.autoDispose<int>(
+  (ref) => ref.watch(itemRepositoryProvider).countLive(),
+);
+
 class ItemRepository {
   ItemRepository(this._db, this._now);
 
@@ -36,6 +42,12 @@ class ItemRepository {
     );
     return saved;
   }
+
+  Future<int> countLive() async =>
+      Sqflite.firstIntValue(
+        await _db.rawQuery('SELECT COUNT(*) FROM items WHERE deleted = 0'),
+      ) ??
+      0;
 
   /// Marks the item deleted (kept in the table so deletions propagate in sync).
   Future<void> softDelete(String barcode) => _db.update(

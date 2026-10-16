@@ -61,6 +61,15 @@ void main() {
     expect(raw.updatedAt, 3000);
   });
 
+  test('countLive counts saved items and ignores soft-deleted ones', () async {
+    expect(await repo.countLive(), 0);
+    await repo.upsert(noodles);
+    await repo.upsert(const Item(barcode: 'B', name: 'Gum', priceCents: 250));
+    expect(await repo.countLive(), 2);
+    await repo.softDelete(noodles.barcode);
+    expect(await repo.countLive(), 1);
+  });
+
   test('upsert revives a soft-deleted item', () async {
     await repo.upsert(noodles);
     await repo.softDelete(noodles.barcode);

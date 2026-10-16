@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/money.dart';
 import '../../data/item_repository.dart';
+import '../../domain/item.dart';
 import '../../domain/cart.dart';
+import '../../shared/app_feedback.dart';
+import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
 import '../encode/encode_screen.dart';
 import 'cart_provider.dart';
@@ -12,7 +15,7 @@ import 'checkout_sheet.dart';
 const _cooldown = Duration(milliseconds: 1500);
 
 Widget _defaultScanner(void Function(String code) onScan) =>
-    ScannerView(onScan: onScan, cooldown: _cooldown, feedback: true);
+    ScannerView(onScan: onScan, cooldown: _cooldown);
 
 /// Continuous scanning: every accepted scan adds the item to the cart, or +1.
 class SellScreen extends ConsumerStatefulWidget {
@@ -46,12 +49,30 @@ class _SellScreenState extends ConsumerState<SellScreen> {
 
   Future<void> _onScan(String code) async {
     if (_busy) return;
-    final item = await ref.read(itemRepositoryProvider).get(code);
+    final Item? item;
+    try {
+      item = await ref.read(itemRepositoryProvider).get(code);
+    } catch (_) {
+      // Nothing was added; the cooldown lets the same label be scanned again.
+      if (mounted) {
+        ref.read(feedbackProvider).error();
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Could not look up that item. Please try again.'),
+            ),
+          );
+      }
+      return;
+    }
     if (!mounted || _busy) return;
     if (item != null) {
       ref.read(cartProvider.notifier).add(item);
+      ref.read(feedbackProvider).scan();
       return;
     }
+    ref.read(feedbackProvider).error();
     _busy = true;
     try {
       final encode = await showDialog<bool>(
@@ -174,7 +195,24 @@ class _CartList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (cart.isEmpty) {
-      return const Center(child: Text('Scan items to add them to the sale'));
+      // While the count loads (or fails) assume items exist: no flash of the hint.
+      final noItems = ref.watch(itemCountProvider).asData?.value == 0;
+      return noItems
+          ? EmptyState(
+              icon: Icons.inventory_2_outlined,
+              title: 'No items yet',
+              message:
+                  'Add your items in Encode first, then scan them here to sell.',
+              actionLabel: 'Encode an item',
+              onAction: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute(builder: (_) => const EncodeScreen()),
+              ),
+            )
+          : const EmptyState(
+              icon: Icons.shopping_cart_outlined,
+              message: 'Scan items to add them to the sale',
+            );
     }
     final notifier = ref.read(cartProvider.notifier);
     return ListView(

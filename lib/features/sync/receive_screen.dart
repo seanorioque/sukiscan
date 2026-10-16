@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/item_repository.dart';
 import '../../data/sync_repository.dart';
 import '../../domain/item.dart';
 import '../../domain/sync_codec.dart';
+import '../../shared/app_feedback.dart';
 import '../../shared/scanner_view.dart';
 import 'merge_preview.dart';
 
@@ -47,6 +49,10 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
   Future<void> _onScan(String code) async {
     if (_phase != _Phase.scanning) return;
     final result = _frames.add(code);
+    // A tick per NEW frame; the last one gets the "done" feedback instead.
+    if (result == FrameResult.accepted && !_frames.isComplete) {
+      ref.read(feedbackProvider).scan();
+    }
     setState(() {
       _note = switch (result) {
         FrameResult.accepted || FrameResult.duplicate => null,
@@ -65,6 +71,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
       final items = _frames.decode();
       final summary = await ref.read(syncRepositoryProvider).preview(items);
       if (!mounted) return;
+      ref.read(feedbackProvider).success(); // the whole transfer checked out
       setState(() {
         _items = items;
         _summary = summary;
@@ -86,6 +93,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
 
   void _fail(String message) {
     if (!mounted) return;
+    ref.read(feedbackProvider).error();
     setState(() {
       _error = message;
       _phase = _Phase.error;
@@ -105,12 +113,15 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
     } catch (_) {
       // One transaction: nothing was changed. Stay on the preview to retry.
       if (!mounted) return;
+      ref.read(feedbackProvider).error();
       setState(() {
         _saving = false;
         _error = 'Could not save the items. Nothing was changed. Try again.';
       });
       return;
     }
+    ref.invalidate(itemCountProvider); // an import can add the first items
+    ref.read(feedbackProvider).success();
     navigator.pop();
     messenger
       ..hideCurrentSnackBar()

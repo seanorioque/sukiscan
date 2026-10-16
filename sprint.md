@@ -130,9 +130,9 @@ M0 → M1 → M2 → M3 (each depends on the previous). Do M1 tests alongside th
 ## Tasks
 
 ### M7 — Polish
-- [ ] Empty states (no items yet, empty cart)
-- [ ] Clear error messages (camera denied, DB errors, sync failures)
-- [ ] Haptics / sound feedback consistent across modules
+- [x] Empty states (no items yet, empty cart)
+- [x] Clear error messages (camera denied, DB errors, sync failures)
+- [x] Haptics / sound feedback consistent across modules
 - [ ] App name and launcher icon (replace the Flutter default)
 - [ ] Low-light / glossy packaging pass (torch toggle if needed)
 - [ ] Run the full manual device checklist from plan §8

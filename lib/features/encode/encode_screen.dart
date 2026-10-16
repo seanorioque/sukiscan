@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
+import '../../shared/app_feedback.dart';
 import '../../shared/scanner_view.dart';
 
 String? _required(String? v, String message) =>
@@ -57,8 +58,21 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
       MaterialPageRoute(builder: (_) => const _ScanPage()),
     );
     if (code == null) return;
+    ref.read(feedbackProvider).scan();
     _barcode.text = code;
-    await _lookup();
+    await _tryLookup();
+  }
+
+  /// [_lookup] for places where nobody else can handle a database failure.
+  Future<void> _tryLookup() async {
+    try {
+      await _lookup();
+    } catch (_) {
+      if (mounted) {
+        ref.read(feedbackProvider).error();
+        _snack('Could not look up that barcode. Please try again.');
+      }
+    }
   }
 
   /// If the typed/scanned barcode already exists, load it into the form
@@ -81,22 +95,34 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
 
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
-    // Barcode typed but never left the field: don't overwrite an existing item blindly.
-    if (_editing == null && await _lookup()) {
-      _snack('Item already exists — edit it and save again');
+    try {
+      // Barcode typed but never left the field: don't overwrite an existing item blindly.
+      // (If this lookup fails we stop: saving without it could overwrite an item.)
+      if (_editing == null && await _lookup()) {
+        _snack('Item already exists — edit it and save again');
+        return;
+      }
+      await ref
+          .read(itemRepositoryProvider)
+          .upsert(
+            Item(
+              barcode: _barcode.text.trim(),
+              name: _name.text.trim(),
+              priceCents: parseCents(_price.text)!, // checked by _validatePrice
+              stockQty: int.tryParse(_stock.text) ?? 0,
+            ),
+          );
+    } catch (_) {
+      // The form is left as it was so nothing has to be retyped.
+      if (mounted) {
+        ref.read(feedbackProvider).error();
+        _snack('Could not save the item. Please try again.');
+      }
       return;
     }
-    await ref
-        .read(itemRepositoryProvider)
-        .upsert(
-          Item(
-            barcode: _barcode.text.trim(),
-            name: _name.text.trim(),
-            priceCents: parseCents(_price.text)!, // checked by _validatePrice
-            stockQty: int.tryParse(_stock.text) ?? 0,
-          ),
-        );
     if (!mounted) return;
+    ref.invalidate(itemCountProvider);
+    ref.read(feedbackProvider).success();
     _snack('Item saved');
     _clearForm();
   }
@@ -121,8 +147,18 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
       ),
     );
     if (ok != true) return;
-    await ref.read(itemRepositoryProvider).softDelete(item.barcode);
+    try {
+      await ref.read(itemRepositoryProvider).softDelete(item.barcode);
+    } catch (_) {
+      if (mounted) {
+        ref.read(feedbackProvider).error();
+        _snack('Could not delete the item. Please try again.');
+      }
+      return;
+    }
     if (!mounted) return;
+    ref.invalidate(itemCountProvider);
+    ref.read(feedbackProvider).success();
     _snack('Item deleted');
     _clearForm();
   }
@@ -148,7 +184,7 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
           children: [
             Focus(
               onFocusChange: (focused) {
-                if (!focused) _lookup();
+                if (!focused) _tryLookup();
               },
               child: TextFormField(
                 controller: _barcode,
@@ -158,7 +194,7 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
                     setState(() => _editing = null);
                   }
                 },
-                onFieldSubmitted: (_) => _lookup(),
+                onFieldSubmitted: (_) => _tryLookup(),
                 decoration: InputDecoration(
                   labelText: 'Barcode',
                   suffixIcon: IconButton(

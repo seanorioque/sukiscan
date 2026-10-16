@@ -6,26 +6,39 @@ import 'package:sukiscan/data/sale_repository.dart';
 import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/features/sell/sell_screen.dart';
 
+import 'package:sukiscan/shared/app_feedback.dart';
+
 import '../helpers/fake_item_repo.dart';
+import '../helpers/recording_feedback.dart';
 import '../helpers/fake_sale_repo.dart';
 
+final feedback = RecordingFeedback();
+
 void main() {
+  setUp(feedback.events.clear);
+
   const noodles = Item(barcode: 'A', name: 'Noodles', priceCents: 1500);
   const gum = Item(barcode: 'B', name: 'Gum', priceCents: 250);
 
   late void Function(String) scan;
   late FakeSaleRepo sales;
 
-  Future<void> pump(WidgetTester tester) async {
-    final repo = FakeItemRepo()
-      ..store['A'] = noodles
-      ..store['B'] = gum;
+  late FakeItemRepo items; // the fake behind the current screen
+
+  Future<void> pump(WidgetTester tester, {bool withItems = true}) async {
+    final repo = items = FakeItemRepo();
+    if (withItems) {
+      repo.store
+        ..['A'] = noodles
+        ..['B'] = gum;
+    }
     sales = FakeSaleRepo();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           itemRepositoryProvider.overrideWithValue(repo),
           saleRepositoryProvider.overrideWithValue(sales),
+          feedbackProvider.overrideWithValue(feedback),
         ],
         child: MaterialApp(
           home: SellScreen(
@@ -43,6 +56,75 @@ void main() {
     await pump(tester);
     expect(find.text('Scan items to add them to the sale'), findsOneWidget);
     expect(find.text('₱0.00'), findsOneWidget);
+  });
+
+  testWidgets(
+    'empty cart with items shows the scan hint, not the no-items hint',
+    (tester) async {
+      await pump(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+      expect(find.byIcon(Icons.shopping_cart_outlined), findsOneWidget);
+      expect(find.text('No items yet'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'no saved items: explains and offers Encode; fills in once one is saved',
+    (tester) async {
+      await pump(tester, withItems: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('No items yet'), findsOneWidget);
+      expect(find.text('Scan items to add them to the sale'), findsNothing);
+
+      await tester.tap(find.text('Encode an item'));
+      await tester.pumpAndSettle();
+      expect(find.text('Encode item'), findsOneWidget); // the Encode screen
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Barcode'),
+        '123',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Item name'),
+        'Gum',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Price'),
+        '2.5',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(items.store, hasLength(1));
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('No items yet'), findsNothing); // count refreshed
+      expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+    },
+  );
+
+  testWidgets('a failed lookup is reported and nothing is added', (
+    tester,
+  ) async {
+    await pump(tester);
+    items.failReads = true;
+    scan('A');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Could not look up that item. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Item not found'), findsNothing); // not a false "unknown"
+    expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+
+    items.failReads = false;
+    scan('A'); // scanning keeps working afterwards
+    await tester.pumpAndSettle();
+    expect(find.text('Noodles'), findsOneWidget);
   });
 
   testWidgets('scan adds a line; scanning again adds +1', (tester) async {
@@ -335,6 +417,70 @@ void main() {
     scan('A'); // and works again afterwards
     await tester.pumpAndSettle();
     expect(find.text('Noodles'), findsOneWidget);
+  });
+
+  testWidgets('feedback: each added item ticks, an unknown barcode buzzes', (
+    tester,
+  ) async {
+    await pump(tester);
+    scan('A');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan']);
+
+    scan('B');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan', 'scan']);
+
+    scan('nope');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan', 'scan', 'error']);
+  });
+
+  testWidgets('feedback: a failed lookup buzzes', (tester) async {
+    await pump(tester);
+    items.failReads = true;
+    scan('A');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error']);
+  });
+
+  testWidgets('feedback: typing a barcode in gives the same tick as a scan', (
+    tester,
+  ) async {
+    await pump(tester);
+    await openManual(tester);
+    await typeBarcode(tester, 'A');
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan']);
+  });
+
+  testWidgets('feedback: a saved sale gives the success cue', (tester) async {
+    await pump(tester);
+    await openCheckout(tester); // two scans
+    feedback.events.clear();
+
+    await tester.tap(confirmButton());
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['success']);
+  });
+
+  testWidgets('feedback: a failed sale buzzes, the retry succeeds', (
+    tester,
+  ) async {
+    await pump(tester);
+    sales.fail = true;
+    await openCheckout(tester);
+    feedback.events.clear();
+
+    await tester.tap(confirmButton());
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error']);
+
+    sales.fail = false;
+    await tester.tap(confirmButton());
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error', 'success']);
   });
 
   testWidgets('unknown barcode raises an alert and is not added', (

@@ -163,6 +163,25 @@ void main() {
     await tester.pump();
 
     expect(find.byType(QrImageView), findsNothing);
-    expect(find.text('Could not load your items.'), findsOneWidget);
+    expect(
+      find.text('Could not load your items. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Try again reloads after a load failure', (tester) async {
+    final repo = FakeSyncRepo(catalog(5))..failExport = true;
+    await pump(tester, repo);
+    await tester.pump();
+    expect(find.text('Try again'), findsOneWidget);
+
+    repo.failExport = false;
+    await tester.tap(find.text('Try again'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(QrImageView), findsOneWidget);
+    expect(find.text('Try again'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
   });
 }

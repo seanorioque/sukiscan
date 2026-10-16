@@ -204,3 +204,80 @@ String crc32Hex(String s) {
   }
   return ((crc ^ 0xFFFFFFFF) & 0xFFFFFFFF).toRadixString(16).padLeft(8, '0');
 }
+
+// ---------------------------------------------------------------------------
+// Receiving
+// ---------------------------------------------------------------------------
+
+/// What [SyncReassembler.add] did with a scanned QR code.
+enum FrameResult {
+  /// New frame stored; progress moved forward.
+  accepted,
+
+  /// Frame already stored (the camera re-reads the same QR constantly).
+  duplicate,
+
+  /// Valid frame, but from a different transfer than the one we locked onto.
+  otherSession,
+
+  /// Not one of our frames, or inconsistent with the locked transfer.
+  invalid,
+}
+
+/// Collects scanned frames of ONE transfer. Frames may arrive in any order and
+/// any number of times. Locks onto the session of the first valid frame.
+class SyncReassembler {
+  String? _sessionId;
+  int? _total;
+  final _chunks = <int, String>{};
+  int? _payloadLength;
+  String? _checksum;
+
+  /// Session we locked onto; null until the first valid frame.
+  String? get sessionId => _sessionId;
+
+  /// Frames stored so far (shown as "received / total").
+  int get received => _chunks.length;
+
+  /// Frames in the transfer; null until the first valid frame.
+  int? get total => _total;
+
+  bool get isComplete => _total != null && _chunks.length == _total;
+
+  /// Length and CRC-32 of the full payload; known once frame 0 has arrived.
+  int? get payloadLength => _payloadLength;
+  String? get checksum => _checksum;
+
+  /// The chunks joined in order once every frame is in, else null.
+  /// NOT yet verified against [checksum] / [payloadLength].
+  String? get assembled => isComplete
+      ? [for (var i = 0; i < _total!; i++) _chunks[i]!].join()
+      : null;
+
+  FrameResult add(String raw) {
+    final SyncFrame f;
+    try {
+      f = SyncFrame.parse(raw);
+    } on FormatException {
+      return FrameResult.invalid;
+    }
+    if (_sessionId == null) {
+      _sessionId = f.sessionId;
+      _total = f.total;
+    } else if (f.sessionId != _sessionId) {
+      return FrameResult.otherSession;
+    } else if (f.total != _total) {
+      return FrameResult.invalid; // same session id but a different shape
+    }
+    // First copy wins; a re-read of the same QR is not an error.
+    if (_chunks.containsKey(f.index)) {
+      return FrameResult.duplicate;
+    }
+    _chunks[f.index] = f.chunk;
+    if (f.index == 0) {
+      _payloadLength = f.payloadLength;
+      _checksum = f.checksum;
+    }
+    return FrameResult.accepted;
+  }
+}

@@ -95,7 +95,7 @@ M0 → M1 → M2 → M3 (each depends on the previous). Do M1 tests alongside th
 ### M5 — Sync codec (pure Dart)
 - [x] `domain/sync_codec.dart`: items → compact JSON (`b n p s u d`) → gzip → base64
 - [x] Chunk into frames `POS1|<sessionId>|<index>/<total>|<chunk>`, ~800–1000 chars; frame 0 carries payload length + checksum (CRC32 or SHA-256 prefix) of the full base64 string
-- [ ] Reassembler: lock onto the first `sessionId`, ignore other sessions, accept frames in any order, ignore duplicates, report progress `n / total`
+- [x] Reassembler: lock onto the first `sessionId`, ignore other sessions, accept frames in any order, ignore duplicates, report progress `n / total`
 - [ ] Verify checksum → base64-decode → gunzip → parse; corrupted chunk → checksum failure
 - [ ] Tests: round-trip with 1, 50 and 500 items; out-of-order; duplicates; wrong session ignored; corrupted chunk rejected
 

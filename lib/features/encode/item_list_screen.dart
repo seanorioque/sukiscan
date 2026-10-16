@@ -121,8 +121,8 @@ class _ItemListScreenState extends ConsumerState<ItemListScreen> {
     return Scaffold(
       appBar: BrandAppBar(
         menuActions: [
-          MenuAction('Import from CSV', Icons.file_upload_outlined, _import),
-          MenuAction('Export to CSV', Icons.file_download_outlined, _export),
+          ('Import from CSV', Icons.file_upload_outlined, _import),
+          ('Export to CSV', Icons.file_download_outlined, _export),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

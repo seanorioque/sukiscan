@@ -29,12 +29,18 @@ void main() {
         cashCents: cash,
       );
 
-  Future<void> pump(WidgetTester tester, {int count = 3}) async {
+  /// [count] plain sales s1..sN (₱10.00, ₱20.00, ...), plus any [extra].
+  Future<void> pump(
+    WidgetTester tester, {
+    int count = 3,
+    List<SaleSummary> extra = const [],
+  }) async {
     repo = FakeSaleRepo();
     auth = FakeDeviceAuth();
     for (var i = 1; i <= count; i++) {
       repo.sales.add(sale('s$i', i * 1000, items: i));
     }
+    repo.sales.addAll(extra);
     repo.lineItems['s1'] = const [
       SaleLine(barcode: 'A', name: 'Noodles', unitPriceCents: 1000, qty: 1),
     ];
@@ -86,21 +92,11 @@ void main() {
   });
 
   testWidgets('cash and change show when cash was entered', (tester) async {
-    await pump(tester, count: 0);
-    repo.sales.add(sale('c1', 3250, items: 3, cash: 5000));
-    repo.lineItems['c1'] = const [];
-    await tester.pumpWidget(const SizedBox()); // rebuild fresh below
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          saleRepositoryProvider.overrideWithValue(repo),
-          deviceAuthProvider.overrideWithValue(auth),
-          feedbackProvider.overrideWithValue(feedback),
-        ],
-        child: const MaterialApp(home: HistoryScreen()),
-      ),
+    await pump(
+      tester,
+      count: 0,
+      extra: [sale('c1', 3250, items: 3, cash: 5000)],
     );
-    await tester.pumpAndSettle();
     await tapText(tester, '₱32.50');
     expect(find.text('₱50.00'), findsOneWidget); // cash
     expect(find.text('₱17.50'), findsOneWidget); // change
@@ -214,13 +210,10 @@ void main() {
       expect(find.text('Purchase history'), findsOneWidget); // left selecting
     });
 
-    testWidgets('long-press starts selecting; select all ticks everything', (
-      tester,
-    ) async {
+    testWidgets('select all ticks everything', (tester) async {
       await pump(tester);
-      await tester.longPress(find.text('₱20.00'));
-      await tester.pumpAndSettle();
-      expect(find.text('1 selected'), findsOneWidget);
+      await tapTip(tester, 'Select purchases');
+      expect(find.text('0 selected'), findsOneWidget);
 
       await tapTip(tester, 'Select all');
       expect(find.text('3 selected'), findsOneWidget);

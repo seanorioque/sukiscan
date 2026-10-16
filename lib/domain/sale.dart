@@ -17,8 +17,6 @@ class SaleSummary {
 
   /// Total quantity sold (not the number of lines).
   final int itemCount;
-
-  int? get changeCents => cashCents == null ? null : cashCents! - totalCents;
 }
 
 /// One line of a sale, as it was when sold (name and price are snapshots).

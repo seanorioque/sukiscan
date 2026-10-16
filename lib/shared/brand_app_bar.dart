@@ -58,14 +58,8 @@ class BrandLogo extends StatelessWidget {
   }
 }
 
-/// One entry in the top bar's menu.
-class MenuAction {
-  const MenuAction(this.label, this.icon, this.onTap);
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-}
+/// One entry in the top bar's menu: label, icon, what it does.
+typedef MenuAction = (String, IconData, VoidCallback);
 
 /// Top bar for the main tabs: the wordmark on the left, the tab's own actions,
 /// then a menu (hamburger) on the far right. The menu always has Purchase
@@ -88,13 +82,13 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final all = [
-      MenuAction(
+    final List<MenuAction> all = [
+      (
         'Purchase history',
         Icons.receipt_long_outlined,
         () => Navigator.pushNamed(context, '/history'),
       ),
-      MenuAction(
+      (
         'Sync with another phone',
         Icons.sync_alt,
         () => Navigator.pushNamed(context, '/sync'),
@@ -106,19 +100,19 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: const BrandLogo(key: Key('brand-logo')),
       actions: [
         ...actions,
-        PopupMenuButton<MenuAction>(
+        PopupMenuButton<VoidCallback>(
           tooltip: 'Menu',
           icon: const Icon(Icons.menu),
-          onSelected: (a) => a.onTap(),
+          onSelected: (run) => run(),
           itemBuilder: (_) => [
-            for (final a in all)
+            for (final (label, icon, run) in all)
               PopupMenuItem(
-                value: a,
+                value: run,
                 child: Row(
                   children: [
-                    Icon(a.icon, size: 20),
+                    Icon(icon, size: 20),
                     const SizedBox(width: 12),
-                    Flexible(child: Text(a.label)),
+                    Flexible(child: Text(label)),
                   ],
                 ),
               ),

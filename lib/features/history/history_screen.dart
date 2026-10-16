@@ -50,25 +50,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         .read(deviceAuthProvider)
         .verify('Confirm it is you to delete $what');
     if (!mounted) return;
-    switch (outcome) {
-      case AuthOutcome.granted:
-        break;
-      case AuthOutcome.cancelled:
-        messenger.showMessage('Nothing was deleted.');
-        return;
-      case AuthOutcome.noScreenLock:
-        feedback.error();
-        messenger.showMessage(
+    if (outcome != AuthOutcome.granted) {
+      if (outcome != AuthOutcome.cancelled) feedback.error();
+      messenger.showMessage(switch (outcome) {
+        AuthOutcome.noScreenLock =>
           'Set a screen lock (PIN, pattern or password) on this phone '
-          'to delete purchase history.',
-        );
-        return;
-      case AuthOutcome.failed:
-        feedback.error();
-        messenger.showMessage(
+              'to delete purchase history.',
+        AuthOutcome.failed =>
           'Could not check your phone lock. Nothing was deleted.',
-        );
-        return;
+        _ => 'Nothing was deleted.',
+      });
+      return;
     }
 
     try {
@@ -151,7 +143,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     selecting: _selecting,
                     checked: selected?.contains(sales[i].id) ?? false,
                     onToggle: () => _toggle(sales[i].id),
-                    onSelect: () => setState(() => _selected = {sales[i].id}),
                     onDelete: () => _delete([sales[i].id]),
                   ),
                 ),
@@ -161,13 +152,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 }
 
-class _SaleCard extends ConsumerWidget {
+class _SaleCard extends StatelessWidget {
   const _SaleCard({
     required this.sale,
     required this.selecting,
     required this.checked,
     required this.onToggle,
-    required this.onSelect,
     required this.onDelete,
   });
 
@@ -175,11 +165,10 @@ class _SaleCard extends ConsumerWidget {
   final bool selecting;
   final bool checked;
   final VoidCallback onToggle;
-  final VoidCallback onSelect;
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final when = DateFormat(
       'MMM d, yyyy · h:mm a',
     ).format(DateTime.fromMillisecondsSinceEpoch(sale.createdAt));
@@ -201,25 +190,22 @@ class _SaleCard extends ConsumerWidget {
       );
     }
     return Card(
-      child: GestureDetector(
-        onLongPress: onSelect,
-        child: ExpansionTile(
-          shape: const Border(),
-          collapsedShape: const Border(),
-          title: title,
-          subtitle: subtitle,
-          children: [
-            _Lines(sale: sale),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline),
-                label: const Text('Delete'),
-              ),
+      child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
+        title: title,
+        subtitle: subtitle,
+        children: [
+          _Lines(sale: sale),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onDelete,
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Delete'),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -260,7 +246,7 @@ class _Lines extends ConsumerWidget {
             if (sale.cashCents != null) ...[
               const Divider(),
               _kv('Cash', formatCents(sale.cashCents!)),
-              _kv('Change', formatCents(sale.changeCents!)),
+              _kv('Change', formatCents(sale.cashCents! - sale.totalCents)),
             ],
           ],
         ),

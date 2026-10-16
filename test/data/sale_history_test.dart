@@ -46,9 +46,7 @@ void main() {
       expect(h.first.totalCents, 3250);
       expect(h.first.itemCount, 3); // 2 noodles + 1 gum
       expect(h.first.cashCents, 5000);
-      expect(h.first.changeCents, 1750);
       expect(h.last.cashCents, isNull);
-      expect(h.last.changeCents, isNull);
     },
   );
 

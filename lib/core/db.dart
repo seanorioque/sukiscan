@@ -1,7 +1,14 @@
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 const dbVersion = 1;
+
+/// Overridden in main() with the opened database (and in tests).
+final databaseProvider = Provider<Database>(
+  (_) => throw UnimplementedError('override databaseProvider'),
+);
 
 const _schemaV1 = [
   '''

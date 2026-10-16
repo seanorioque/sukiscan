@@ -63,8 +63,8 @@ M0 → M1 → M2 → M3 (each depends on the previous). Do M1 tests alongside th
 ### M4 — Selling
 - [x] `domain/cart.dart` (pure Dart): `CartLine`, add / +1 if present, increment, decrement (0 removes the line), remove, clear, total in centavos
 - [x] Tests: cart add, increment, decrement-to-zero removes line, total correctness
-- [ ] `data/sale_repository.dart`: `checkout(cart, cashCents?)` saves `sales` + `sale_items` and decrements stock in **one transaction**; `uuid` v4 sale ids; `name_snapshot` / `unit_price_cents` copied from the item
-- [ ] Tests (`sqflite_common_ffi`): sale + lines + stock all commit, or none do (force a failure mid-way)
+- [x] `data/sale_repository.dart`: `checkout(cart, cashCents?)` saves `sales` + `sale_items` and decrements stock in **one transaction**; `uuid` v4 sale ids; `name_snapshot` / `unit_price_cents` copied from the item
+- [x] Tests (`sqflite_common_ffi`): sale + lines + stock all commit, or none do (force a failure mid-way)
 - [ ] `ScannerView`: per-barcode cooldown (~1.5 s) and beep/vibration on each accepted scan
 - [ ] Sell screen: continuous scan → cart; each accepted scan adds the item or +1
 - [ ] Cart list UI: +/– buttons, remove line, clear cart, running total always computed from the lines

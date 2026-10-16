@@ -15,7 +15,7 @@
 **Done when:** app runs on a real phone and the camera opens.
 
 ### M1 — Data layer
-- [ ] `core/money.dart`: parse `"12.5"` → `1250`, format → `₱12.50`, reject invalid input
+- [x] `core/money.dart`: parse `"12.5"` → `1250`, format → `₱12.50`, reject invalid input
 - [ ] `core/clock.dart`: injectable time source
 - [ ] `core/db.dart`: schema v1 (`items`, `sales`, `sale_items`, index) with `onCreate`/`onUpgrade`
 - [ ] `domain/item.dart` + `data/item_repository.dart` (get, upsert, soft delete)

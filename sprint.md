@@ -33,7 +33,7 @@
 **Done when:** items survive an app restart.
 
 ### M3 — Reading
-- [ ] Read screen: scan → show name, price, stock
+- [x] Read screen: scan → show name, price, stock
 - [ ] Not found → "Encode this item?" button opens Encode with barcode pre-filled
 
 **Done when:** scanning a known item shows details in under 1 s.

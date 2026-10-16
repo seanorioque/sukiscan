@@ -39,6 +39,7 @@ dependencies:
   intl: ^0.20.3
   uuid: ^4.6.0
   file_picker: ^13.1.0
+  local_auth: ^3.0.2
 
 dev_dependencies:
   flutter_test:

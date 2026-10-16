@@ -68,8 +68,8 @@ class MenuAction {
 }
 
 /// Top bar for the main tabs: the wordmark on the left, the tab's own actions,
-/// then a menu (hamburger) on the far right. The menu always has Sync, plus
-/// any [menuActions] the tab adds (e.g. CSV import/export).
+/// then a menu (hamburger) on the far right. The menu always has Purchase
+/// history and Sync, plus any [menuActions] the tab adds (e.g. CSV import/export).
 class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BrandAppBar({
     super.key,
@@ -89,6 +89,11 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final all = [
+      MenuAction(
+        'Purchase history',
+        Icons.receipt_long_outlined,
+        () => Navigator.pushNamed(context, '/history'),
+      ),
       MenuAction(
         'Sync with another phone',
         Icons.sync_alt,

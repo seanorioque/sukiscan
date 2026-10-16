@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme.dart';
+import 'features/history/history_screen.dart';
 import 'features/shell/app_shell.dart';
 import 'features/sync/sync_screen.dart';
 import 'shared/empty_state.dart';
@@ -49,6 +50,7 @@ class SukiScanApp extends StatelessWidget {
       routes: {
         '/': (_) => AppShell(scannerBuilder: scannerBuilder),
         '/sync': (_) => const SyncScreen(),
+        '/history': (_) => const HistoryScreen(),
       },
     );
   }

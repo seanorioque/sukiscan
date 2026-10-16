@@ -111,6 +111,18 @@ void main() {
       }
     });
 
+    testWidgets('Purchase history is in the menu and opens its screen', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+      await tester.tap(find.byTooltip('Menu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Purchase history'));
+      await tester.pumpAndSettle();
+      expect(find.text('Purchase history'), findsOneWidget); // its app bar
+      expect(find.byType(BackButton), findsOneWidget);
+    });
+
     testWidgets('Sync opens the sync screen and back returns to the tab', (
       tester,
     ) async {

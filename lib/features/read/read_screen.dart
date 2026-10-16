@@ -7,8 +7,6 @@ import '../../domain/item.dart';
 import '../../shared/scanner_view.dart';
 import '../encode/encode_screen.dart';
 
-typedef ScannerBuilder = Widget Function(void Function(String code) onScan);
-
 Widget _defaultScanner(void Function(String code) onScan) =>
     ScannerView(onScan: onScan);
 

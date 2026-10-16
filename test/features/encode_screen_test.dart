@@ -4,34 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sukiscan/data/item_repository.dart';
 import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/features/encode/encode_screen.dart';
+import '../helpers/fake_item_repo.dart';
 
-class FakeRepo implements ItemRepository {
-  final store = <String, Item>{};
-  final deleted = <String>[];
-  var upserts = 0;
-
-  @override
-  Future<Item?> get(String barcode, {bool includeDeleted = false}) async =>
-      store[barcode];
-
-  @override
-  Future<Item> upsert(Item item) async {
-    upserts++;
-    return store[item.barcode] = item;
-  }
-
-  @override
-  Future<void> softDelete(String barcode) async {
-    deleted.add(barcode);
-    store.remove(barcode);
-  }
-}
-
-Future<void> pumpScreen(WidgetTester tester, [FakeRepo? repo]) =>
+Future<void> pumpScreen(WidgetTester tester, [FakeItemRepo? repo]) =>
     tester.pumpWidget(
       ProviderScope(
         overrides: [
-          itemRepositoryProvider.overrideWithValue(repo ?? FakeRepo()),
+          itemRepositoryProvider.overrideWithValue(repo ?? FakeItemRepo()),
         ],
         child: const MaterialApp(home: EncodeScreen()),
       ),
@@ -84,7 +63,7 @@ void main() {
   testWidgets('existing barcode loads into edit mode and updates in place', (
     tester,
   ) async {
-    final repo = FakeRepo()..store[noodles.barcode] = noodles;
+    final repo = FakeItemRepo()..store[noodles.barcode] = noodles;
     await pumpScreen(tester, repo);
 
     await tester.enterText(field('Barcode'), noodles.barcode);
@@ -109,7 +88,7 @@ void main() {
   testWidgets(
     'save with an unblurred existing barcode loads it, no overwrite',
     (tester) async {
-      final repo = FakeRepo()..store[noodles.barcode] = noodles;
+      final repo = FakeItemRepo()..store[noodles.barcode] = noodles;
       await pumpScreen(tester, repo);
 
       // Barcode entered last, so the field never loses focus before Save.
@@ -132,7 +111,7 @@ void main() {
   testWidgets('delete button only shows in edit mode and soft-deletes', (
     tester,
   ) async {
-    final repo = FakeRepo()..store[noodles.barcode] = noodles;
+    final repo = FakeItemRepo()..store[noodles.barcode] = noodles;
     await pumpScreen(tester, repo);
     expect(find.text('Delete'), findsNothing);
 
@@ -165,7 +144,7 @@ void main() {
   });
 
   testWidgets('new barcode saves as a new item', (tester) async {
-    final repo = FakeRepo();
+    final repo = FakeItemRepo();
     await pumpScreen(tester, repo);
 
     await tester.enterText(field('Barcode'), '123');

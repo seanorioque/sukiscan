@@ -19,7 +19,7 @@
 - [x] `core/clock.dart`: injectable time source
 - [x] `core/db.dart`: schema v1 (`items`, `sales`, `sale_items`, index) with `onCreate`/`onUpgrade`
 - [x] `domain/item.dart` + `data/item_repository.dart` (get, upsert, soft delete)
-- [ ] Tests: money parse/format; item CRUD + soft delete via `sqflite_common_ffi`
+- [x] Tests: money parse/format; item CRUD + soft delete via `sqflite_common_ffi`
 
 **Done when:** unit tests pass.
 

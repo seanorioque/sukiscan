@@ -5,6 +5,7 @@ import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/cart.dart';
 import '../../shared/scanner_view.dart';
+import '../encode/encode_screen.dart';
 import 'cart_provider.dart';
 import 'checkout_sheet.dart';
 
@@ -14,26 +15,62 @@ Widget _defaultScanner(void Function(String code) onScan) =>
     ScannerView(onScan: onScan, cooldown: _cooldown, feedback: true);
 
 /// Continuous scanning: every accepted scan adds the item to the cart, or +1.
-class SellScreen extends ConsumerWidget {
+class SellScreen extends ConsumerStatefulWidget {
   /// [scannerBuilder] exists so tests can replace the camera.
   const SellScreen({super.key, this.scannerBuilder = _defaultScanner});
 
   final ScannerBuilder scannerBuilder;
 
-  Future<void> _onScan(BuildContext context, WidgetRef ref, String code) async {
+  @override
+  ConsumerState<SellScreen> createState() => _SellScreenState();
+}
+
+class _SellScreenState extends ConsumerState<SellScreen> {
+  /// True while the "not found" alert (or the Encode screen it opens) is up.
+  /// The camera keeps running underneath, so scans are ignored meanwhile
+  /// instead of stacking more alerts or touching the cart.
+  bool _busy = false;
+
+  Future<void> _onScan(String code) async {
+    if (_busy) return;
     final item = await ref.read(itemRepositoryProvider).get(code);
+    if (!mounted || _busy) return;
     if (item != null) {
       ref.read(cartProvider.notifier).add(item);
-    } else if (context.mounted) {
-      // Placeholder until the "unknown barcode → encode it" alert task.
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Not found: $code')));
+      return;
+    }
+    _busy = true;
+    try {
+      final encode = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Item not found'),
+          content: Text('No item has barcode $code. Encode it now?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Encode item'),
+            ),
+          ],
+        ),
+      );
+      if (encode == true && mounted) {
+        await Navigator.push<void>(
+          context,
+          MaterialPageRoute(builder: (_) => EncodeScreen(initialBarcode: code)),
+        );
+      }
+    } finally {
+      _busy = false;
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
     return Scaffold(
       appBar: AppBar(
@@ -49,10 +86,7 @@ class SellScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: scannerBuilder((code) => _onScan(context, ref, code)),
-          ),
+          Expanded(flex: 2, child: widget.scannerBuilder(_onScan)),
           Expanded(flex: 3, child: _CartList(cart)),
           _TotalBar(cart),
         ],

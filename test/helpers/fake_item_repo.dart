@@ -15,6 +15,9 @@ class FakeItemRepo implements ItemRepository {
   }
 
   @override
+  Future<int> countLive() async => store.length;
+
+  @override
   Future<Item> upsert(Item item) async {
     upserts++;
     return store[item.barcode] = item;

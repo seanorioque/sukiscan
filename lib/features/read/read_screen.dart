@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
+import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
 import '../encode/encode_screen.dart';
 
@@ -33,7 +34,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     setState(() => _item = item);
   }
 
-  Future<void> _encode(String code) async {
+  Future<void> _encode(String? code) async {
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -50,6 +51,8 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // While the count loads (or fails) assume items exist: no flash of the hint.
+    final noItems = ref.watch(itemCountProvider).asData?.value == 0;
     return Scaffold(
       appBar: AppBar(title: const Text('Read item')),
       body: Column(
@@ -57,7 +60,12 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
           Expanded(flex: 3, child: widget.scannerBuilder(_onScan)),
           Expanded(
             flex: 2,
-            child: _Result(code: _code, item: _item, onEncode: _encode),
+            child: _Result(
+              code: _code,
+              item: _item,
+              noItems: noItems,
+              onEncode: _encode,
+            ),
           ),
         ],
       ),
@@ -69,19 +77,29 @@ class _Result extends StatelessWidget {
   const _Result({
     required this.code,
     required this.item,
+    required this.noItems,
     required this.onEncode,
   });
 
   final String? code;
   final Item? item;
-  final void Function(String code) onEncode;
+  final bool noItems; // nothing saved yet: point the user at Encode
+  final void Function(String? code) onEncode;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final Widget body;
     if (code == null) {
-      body = const Text('Point the camera at a barcode');
+      body = noItems
+          ? EmptyState(
+              icon: Icons.inventory_2_outlined,
+              title: 'No items yet',
+              message: 'Add your items in Encode, then scan them here.',
+              actionLabel: 'Encode an item',
+              onAction: () => onEncode(null),
+            )
+          : const Text('Point the camera at a barcode');
     } else if (item == null) {
       body = Column(
         mainAxisSize: MainAxisSize.min,

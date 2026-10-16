@@ -34,6 +34,33 @@ void main() {
     );
   }
 
+  testWidgets('no saved items: explains and offers Encode', (tester) async {
+    repo = FakeItemRepo();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [itemRepositoryProvider.overrideWithValue(repo)],
+        child: MaterialApp(
+          home: ReadScreen(scannerBuilder: (_) => const SizedBox.expand()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No items yet'), findsOneWidget);
+    expect(find.text('Point the camera at a barcode'), findsNothing);
+
+    await tester.tap(find.text('Encode an item'));
+    await tester.pumpAndSettle();
+    expect(find.text('Encode item'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextFormField>(find.widgetWithText(TextFormField, 'Barcode'))
+          .controller!
+          .text,
+      '', // nothing to pre-fill
+    );
+  });
+
   testWidgets('shows a prompt before any scan', (tester) async {
     await pump(tester);
     expect(find.text('Point the camera at a barcode'), findsOneWidget);

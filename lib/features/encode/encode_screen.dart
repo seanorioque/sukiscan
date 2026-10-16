@@ -97,6 +97,7 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
           ),
         );
     if (!mounted) return;
+    ref.invalidate(itemCountProvider);
     _snack('Item saved');
     _clearForm();
   }
@@ -123,6 +124,7 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
     if (ok != true) return;
     await ref.read(itemRepositoryProvider).softDelete(item.barcode);
     if (!mounted) return;
+    ref.invalidate(itemCountProvider);
     _snack('Item deleted');
     _clearForm();
   }

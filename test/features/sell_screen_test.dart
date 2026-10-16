@@ -16,10 +16,15 @@ void main() {
   late void Function(String) scan;
   late FakeSaleRepo sales;
 
-  Future<void> pump(WidgetTester tester) async {
-    final repo = FakeItemRepo()
-      ..store['A'] = noodles
-      ..store['B'] = gum;
+  late FakeItemRepo items; // the fake behind the current screen
+
+  Future<void> pump(WidgetTester tester, {bool withItems = true}) async {
+    final repo = items = FakeItemRepo();
+    if (withItems) {
+      repo.store
+        ..['A'] = noodles
+        ..['B'] = gum;
+    }
     sales = FakeSaleRepo();
     await tester.pumpWidget(
       ProviderScope(
@@ -44,6 +49,54 @@ void main() {
     expect(find.text('Scan items to add them to the sale'), findsOneWidget);
     expect(find.text('₱0.00'), findsOneWidget);
   });
+
+  testWidgets(
+    'empty cart with items shows the scan hint, not the no-items hint',
+    (tester) async {
+      await pump(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+      expect(find.byIcon(Icons.shopping_cart_outlined), findsOneWidget);
+      expect(find.text('No items yet'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'no saved items: explains and offers Encode; fills in once one is saved',
+    (tester) async {
+      await pump(tester, withItems: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('No items yet'), findsOneWidget);
+      expect(find.text('Scan items to add them to the sale'), findsNothing);
+
+      await tester.tap(find.text('Encode an item'));
+      await tester.pumpAndSettle();
+      expect(find.text('Encode item'), findsOneWidget); // the Encode screen
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Barcode'),
+        '123',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Item name'),
+        'Gum',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Price'),
+        '2.5',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(items.store, hasLength(1));
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('No items yet'), findsNothing); // count refreshed
+      expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+    },
+  );
 
   testWidgets('scan adds a line; scanning again adds +1', (tester) async {
     await pump(tester);

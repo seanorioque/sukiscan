@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/item_repository.dart';
 import '../../data/sync_repository.dart';
 import '../../domain/item.dart';
 import '../../domain/sync_codec.dart';
@@ -111,6 +112,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
       });
       return;
     }
+    ref.invalidate(itemCountProvider); // an import can add the first items
     navigator.pop();
     messenger
       ..hideCurrentSnackBar()

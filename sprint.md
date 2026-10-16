@@ -70,7 +70,7 @@ M0 → M1 → M2 → M3 (each depends on the previous). Do M1 tests alongside th
 - [x] Cart list UI: +/– buttons, remove line, clear cart, running total always computed from the lines
 - [x] Checkout: optional cash tendered field, shows change due; confirm saves the sale and clears the cart
 - [x] Unknown barcode while selling: alert with an option to encode it quickly (reuse Encode `initialBarcode`)
-- [ ] Manual barcode entry in Sell for damaged labels
+- [x] Manual barcode entry in Sell for damaged labels
 
 **Done when:** sale and stock update are atomic; holding one item in view never double-adds.
 

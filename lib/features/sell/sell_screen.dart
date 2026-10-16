@@ -31,6 +31,19 @@ class _SellScreenState extends ConsumerState<SellScreen> {
   /// instead of stacking more alerts or touching the cart.
   bool _busy = false;
 
+  /// For damaged labels: type the barcode instead of scanning it. Goes through
+  /// the same path as a scan (add / +1, or the "not found" alert).
+  Future<void> _enterManually() async {
+    if (_busy) return;
+    _busy = true; // the camera must not add items behind the dialog
+    final code = await showDialog<String>(
+      context: context,
+      builder: (_) => const _ManualEntryDialog(),
+    );
+    _busy = false;
+    if (code != null && mounted) await _onScan(code);
+  }
+
   Future<void> _onScan(String code) async {
     if (_busy) return;
     final item = await ref.read(itemRepositoryProvider).get(code);
@@ -76,6 +89,11 @@ class _SellScreenState extends ConsumerState<SellScreen> {
       appBar: AppBar(
         title: const Text('Sell'),
         actions: [
+          IconButton(
+            tooltip: 'Type barcode',
+            icon: const Icon(Icons.keyboard_outlined),
+            onPressed: _enterManually,
+          ),
           if (!cart.isEmpty)
             IconButton(
               tooltip: 'Clear cart',
@@ -91,6 +109,59 @@ class _SellScreenState extends ConsumerState<SellScreen> {
           _TotalBar(cart),
         ],
       ),
+    );
+  }
+}
+
+class _ManualEntryDialog extends StatefulWidget {
+  const _ManualEntryDialog();
+
+  @override
+  State<_ManualEntryDialog> createState() => _ManualEntryDialogState();
+}
+
+class _ManualEntryDialogState extends State<_ManualEntryDialog> {
+  final _controller = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final code = _controller.text.trim();
+    if (code.isEmpty) {
+      setState(() => _error = 'Enter a barcode');
+      return;
+    }
+    Navigator.pop(context, code);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Type barcode'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        // Not numbers-only: Code 128 / Code 39 labels can contain letters.
+        keyboardType: TextInputType.text,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => _submit(),
+        onChanged: (_) {
+          if (_error != null) setState(() => _error = null);
+        },
+        decoration: InputDecoration(labelText: 'Barcode', errorText: _error),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Add')),
+      ],
     );
   }
 }

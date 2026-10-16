@@ -260,13 +260,155 @@ void main() {
     expect(find.text('Scan items to add them to the sale'), findsOneWidget);
   });
 
-  testWidgets('unknown barcode is not added and says so', (tester) async {
+  // --- manual barcode entry ---
+
+  Future<void> openManual(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Type barcode'));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> typeBarcode(WidgetTester tester, String code) async {
+    await tester.enterText(find.widgetWithText(TextField, 'Barcode'), code);
+    await tester.pump();
+  }
+
+  testWidgets('typing a known barcode adds it like a scan', (tester) async {
+    await pump(tester);
+    await openManual(tester);
+    await typeBarcode(tester, ' A ');
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Type barcode'), findsNothing); // dialog closed
+    expect(find.text('Noodles'), findsOneWidget);
+    expect(find.text('₱15.00 each · ₱15.00'), findsOneWidget);
+
+    await openManual(tester); // typing it again is +1
+    await typeBarcode(tester, 'A');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text('₱15.00 each · ₱30.00'), findsOneWidget);
+  });
+
+  testWidgets('typing an unknown barcode raises the not-found alert', (
+    tester,
+  ) async {
+    await pump(tester);
+    await openManual(tester);
+    await typeBarcode(tester, 'zzz');
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Item not found'), findsOneWidget);
+    expect(find.textContaining('zzz'), findsOneWidget);
+    expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+  });
+
+  testWidgets('blank entry shows an error; Cancel adds nothing', (
+    tester,
+  ) async {
+    await pump(tester);
+    await openManual(tester);
+    await typeBarcode(tester, '   ');
+    await tester.tap(find.text('Add'));
+    await tester.pump();
+    expect(find.text('Enter a barcode'), findsOneWidget);
+    expect(find.text('Type barcode'), findsWidgets); // dialog still open
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+  });
+
+  testWidgets('camera scans are ignored while the entry dialog is open', (
+    tester,
+  ) async {
+    await pump(tester);
+    await openManual(tester);
+
+    scan('A');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Noodles'), findsNothing);
+
+    scan('A'); // and works again afterwards
+    await tester.pumpAndSettle();
+    expect(find.text('Noodles'), findsOneWidget);
+  });
+
+  testWidgets('unknown barcode raises an alert and is not added', (
+    tester,
+  ) async {
     await pump(tester);
     scan('nope');
     await tester.pumpAndSettle();
 
-    expect(find.text('Not found: nope'), findsOneWidget);
+    expect(find.text('Item not found'), findsOneWidget);
+    expect(find.textContaining('nope'), findsOneWidget);
+    expect(find.text('Encode item'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Item not found'), findsNothing);
     expect(find.text('Scan items to add them to the sale'), findsOneWidget);
     expect(find.text('₱0.00'), findsOneWidget);
   });
+
+  testWidgets('scans are ignored while the alert is open (no stacking)', (
+    tester,
+  ) async {
+    await pump(tester);
+    scan('first');
+    await tester.pumpAndSettle();
+
+    scan('second'); // unknown: no second alert
+    scan('A'); // known: not added behind the alert
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.textContaining('first'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Scan items to add them to the sale'), findsOneWidget);
+
+    // Scanning works again afterwards.
+    scan('A');
+    await tester.pumpAndSettle();
+    expect(find.text('Noodles'), findsOneWidget);
+  });
+
+  testWidgets(
+    '"Encode item" opens Encode with the barcode, then back to Sell',
+    (tester) async {
+      await pump(tester);
+      scan('newcode');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Encode item'));
+      await tester.pumpAndSettle();
+      expect(find.text('Encode item'), findsOneWidget); // Encode screen title
+      expect(
+        tester
+            .widget<TextFormField>(
+              find.widgetWithText(TextFormField, 'Barcode'),
+            )
+            .controller!
+            .text,
+        'newcode',
+      );
+
+      scan('A'); // Sell's camera is still running underneath: ignored
+      await tester.pumpAndSettle();
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Sell'), findsOneWidget);
+      expect(find.text('Noodles'), findsNothing);
+
+      scan('A');
+      await tester.pumpAndSettle();
+      expect(find.text('Noodles'), findsOneWidget);
+    },
+  );
 }

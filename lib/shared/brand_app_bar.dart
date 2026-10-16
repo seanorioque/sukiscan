@@ -58,28 +58,66 @@ class BrandLogo extends StatelessWidget {
   }
 }
 
-/// Top bar for the main tabs: the wordmark on the left, the tab's own actions,
-/// then a Sync button on the far right.
-class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const BrandAppBar({super.key, this.actions = const []});
+/// One entry in the top bar's menu.
+class MenuAction {
+  const MenuAction(this.label, this.icon, this.onTap);
 
-  /// Tab-specific buttons, shown just left of the Sync button.
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+}
+
+/// Top bar for the main tabs: the wordmark on the left, the tab's own actions,
+/// then a menu (hamburger) on the far right. The menu always has Sync, plus
+/// any [menuActions] the tab adds (e.g. CSV import/export).
+class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const BrandAppBar({
+    super.key,
+    this.actions = const [],
+    this.menuActions = const [],
+  });
+
+  /// Tab-specific buttons, shown just left of the menu.
   final List<Widget> actions;
+
+  /// Tab-specific menu entries, listed after Sync.
+  final List<MenuAction> menuActions;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
+    final all = [
+      MenuAction(
+        'Sync with another phone',
+        Icons.sync_alt,
+        () => Navigator.pushNamed(context, '/sync'),
+      ),
+      ...menuActions,
+    ];
     return AppBar(
       titleSpacing: 16,
       title: const BrandLogo(key: Key('brand-logo')),
       actions: [
         ...actions,
-        IconButton(
-          tooltip: 'Sync with another phone',
-          icon: const Icon(Icons.sync_alt),
-          onPressed: () => Navigator.pushNamed(context, '/sync'),
+        PopupMenuButton<MenuAction>(
+          tooltip: 'Menu',
+          icon: const Icon(Icons.menu),
+          onSelected: (a) => a.onTap(),
+          itemBuilder: (_) => [
+            for (final a in all)
+              PopupMenuItem(
+                value: a,
+                child: Row(
+                  children: [
+                    Icon(a.icon, size: 20),
+                    const SizedBox(width: 12),
+                    Flexible(child: Text(a.label)),
+                  ],
+                ),
+              ),
+          ],
         ),
         const SizedBox(width: 4),
       ],

@@ -119,7 +119,12 @@ class _ItemListScreenState extends ConsumerState<ItemListScreen> {
     final items = ref.watch(itemListProvider);
     final count = items.asData?.value.length;
     return Scaffold(
-      appBar: const BrandAppBar(),
+      appBar: BrandAppBar(
+        menuActions: [
+          MenuAction('Import from CSV', Icons.file_upload_outlined, _import),
+          MenuAction('Export to CSV', Icons.file_download_outlined, _export),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _open(const EncodeScreen()),
         icon: const Icon(Icons.add),
@@ -139,16 +144,6 @@ class _ItemListScreenState extends ConsumerState<ItemListScreen> {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Import from CSV',
-                  icon: const Icon(Icons.file_upload_outlined),
-                  onPressed: _import,
-                ),
-                IconButton(
-                  tooltip: 'Export to CSV',
-                  icon: const Icon(Icons.file_download_outlined),
-                  onPressed: _export,
                 ),
               ],
             ),

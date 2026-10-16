@@ -84,19 +84,19 @@ void main() {
   }
 
   group('top bar', () {
-    testWidgets('shows the SukiScan wordmark and a Sync button on the right', (
+    testWidgets('shows the SukiScan wordmark and a menu button on the right', (
       tester,
     ) async {
       await pumpApp(tester);
 
       expect(find.byKey(const Key('brand-logo')), findsOneWidget);
       expect(find.bySemanticsLabel('SukiScan'), findsOneWidget);
-      final sync = find.byTooltip('Sync with another phone');
-      expect(sync, findsOneWidget);
+      final menu = find.byTooltip('Menu');
+      expect(menu, findsOneWidget);
 
       // Far right: nothing in the bar sits to the right of it.
       final bar = tester.getRect(find.byType(AppBar));
-      expect(tester.getRect(sync).right, greaterThan(bar.right - 64));
+      expect(tester.getRect(menu).right, greaterThan(bar.right - 64));
     });
 
     testWidgets('the wordmark is on every tab', (tester) async {
@@ -115,7 +115,9 @@ void main() {
       tester,
     ) async {
       await pumpApp(tester);
-      await tester.tap(find.byTooltip('Sync with another phone'));
+      await tester.tap(find.byTooltip('Menu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sync with another phone'));
       await tester.pumpAndSettle();
       expect(find.text('Send items'), findsOneWidget);
       expect(find.text('Receive items'), findsOneWidget);

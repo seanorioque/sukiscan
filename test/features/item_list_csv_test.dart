@@ -50,20 +50,26 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> tapImport(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Import from CSV'));
+  Future<void> pickFromMenu(WidgetTester tester, String entry) async {
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(entry));
     await tester.pumpAndSettle();
   }
 
-  Future<void> tapExport(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Export to CSV'));
-    await tester.pumpAndSettle();
-  }
+  Future<void> tapImport(WidgetTester tester) =>
+      pickFromMenu(tester, 'Import from CSV');
 
-  testWidgets('the Encode tab has Import and Export buttons', (tester) async {
+  Future<void> tapExport(WidgetTester tester) =>
+      pickFromMenu(tester, 'Export to CSV');
+
+  testWidgets('the menu has Sync, Import and Export', (tester) async {
     await pump(tester);
-    expect(find.byTooltip('Import from CSV'), findsOneWidget);
-    expect(find.byTooltip('Export to CSV'), findsOneWidget);
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sync with another phone'), findsOneWidget);
+    expect(find.text('Import from CSV'), findsOneWidget);
+    expect(find.text('Export to CSV'), findsOneWidget);
   });
 
   group('export', () {

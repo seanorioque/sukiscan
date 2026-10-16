@@ -114,13 +114,13 @@ void main() {
     expect(await db.query('sales'), isEmpty);
   });
 
-  test('stock may go negative instead of blocking the sale', () async {
+  test('stock stops at 0 instead of blocking the sale', () async {
     var cart = const Cart().add(gum);
     for (var i = 0; i < 4; i++) {
       cart = cart.increment('B');
     }
     await repo.checkout(cart); // qty 5, stock 3
-    expect(await stock('B'), -2);
+    expect(await stock('B'), 0);
   });
 
   test('selling does not change items.updated_at', () async {

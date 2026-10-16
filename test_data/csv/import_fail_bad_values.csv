@@ -1,0 +1,6 @@
+barcode,item name,price,stock quantity
+111,Gum,abc,5
+222,Soda,0,1
+333,Candy,-4,2
+444,Chips,12.50,lots
+555,Water,10,2.5

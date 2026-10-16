@@ -3,22 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sukiscan/data/sync_repository.dart';
-import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/domain/sync_codec.dart';
 import 'package:sukiscan/features/sync/send_screen.dart';
 
+import '../helpers/catalog.dart';
 import '../helpers/fake_sync_repo.dart';
-
-List<Item> catalog(int n) => [
-  for (var i = 0; i < n; i++)
-    Item(
-      barcode: '4800${(i * 7919 % 100000000).toString().padLeft(9, '0')}',
-      name: 'Item ${i * 31 % 977} brand ${i % 53}',
-      priceCents: 1000 + (i * 37 % 9000),
-      stockQty: i % 30,
-      updatedAt: 1760600000000 + i * 1234567,
-    ),
-];
 
 Future<void> pump(WidgetTester tester, FakeSyncRepo repo) => tester.pumpWidget(
   ProviderScope(

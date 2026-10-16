@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/domain/sync_codec.dart';
 
+import '../helpers/catalog.dart';
+
 String pack(Object? json) =>
     base64Encode(gzip.encode(utf8.encode(jsonEncode(json))));
 
@@ -67,16 +69,7 @@ void main() {
   });
 
   test('gzip makes a big catalog smaller than its raw JSON', () {
-    final items = [
-      for (var i = 0; i < 500; i++)
-        Item(
-          barcode: '480001664${i.toString().padLeft(4, '0')}',
-          name: 'Product number $i',
-          priceCents: 1000 + i,
-          stockQty: i % 30,
-          updatedAt: 1760600000000 + i,
-        ),
-    ];
+    final items = catalog(500);
     final raw = utf8
         .encode(jsonEncode([for (final i in items) i.toMap()]))
         .length;

@@ -7,6 +7,7 @@ import '../../domain/item.dart';
 import '../../domain/sync_codec.dart';
 import '../../shared/app_feedback.dart';
 import '../../shared/scanner_view.dart';
+import '../../shared/ui_helpers.dart';
 import 'merge_preview.dart';
 
 Widget _defaultScanner(void Function(String code) onScan) =>
@@ -120,19 +121,13 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
       });
       return;
     }
-    ref.invalidate(itemCountProvider); // an import can add the first items
+    refreshItems(ref); // an import can add or change many items
     ref.read(feedbackProvider).success();
     navigator.pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            'Imported: ${done.created} new, ${done.updated} updated, '
-            '${done.deleted} deleted',
-          ),
-        ),
-      );
+    messenger.showMessage(
+      'Imported: ${done.created} new, ${done.updated} updated, '
+      '${done.deleted} deleted',
+    );
   }
 
   @override

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/money.dart';
 import '../../data/sale_repository.dart';
 import '../../shared/app_feedback.dart';
+import '../../shared/ui_helpers.dart';
 import 'cart_provider.dart';
 
 /// Bottom sheet: optional cash tendered, change due, and Confirm.
@@ -59,17 +59,11 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
     ref.read(cartProvider.notifier).clear();
     ref.read(feedbackProvider).success();
     navigator.pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            cashCents == null
-                ? 'Sale saved'
-                : 'Sale saved — change ${formatCents(changeCents)}',
-          ),
-        ),
-      );
+    messenger.showMessage(
+      cashCents == null
+          ? 'Sale saved'
+          : 'Sale saved — change ${formatCents(changeCents)}',
+    );
   }
 
   @override
@@ -104,9 +98,7 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
             controller: _cash,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-            ],
+            inputFormatters: moneyInputFormatters,
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               labelText: 'Cash tendered (optional)',

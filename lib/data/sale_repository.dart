@@ -24,8 +24,8 @@ class SaleRepository {
   ///
   /// Line name/price come from the cart (captured when the item was added), so
   /// receipts stay accurate after an item is re-priced.
-  /// Stock may go negative: stock is optional and defaults to 0, so a sale
-  /// must never be blocked by it. `items.updated_at` is left alone, so selling
+  /// Stock never goes below 0. It is optional and defaults to 0, so a sale
+  /// is never blocked by it; it just stops at 0. `items.updated_at` is left alone, so selling
   /// doesn't make this phone's catalog look newer to the sync merge.
   Future<String> checkout(Cart cart, {int? cashCents}) async {
     if (cart.isEmpty) throw ArgumentError('Cannot check out an empty cart');
@@ -49,7 +49,7 @@ class SaleRepository {
           'qty': line.qty,
         });
         await txn.rawUpdate(
-          'UPDATE items SET stock_qty = stock_qty - ? WHERE barcode = ?',
+          'UPDATE items SET stock_qty = MAX(stock_qty - ?, 0) WHERE barcode = ?',
           [line.qty, line.barcode],
         );
       }

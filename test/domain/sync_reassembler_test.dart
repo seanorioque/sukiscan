@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/domain/sync_codec.dart';
+
+import '../helpers/catalog.dart';
 
 void main() {
   final payload = List.generate(3500, (i) => 'ABCDEFGH'[i % 8]).join();
@@ -9,7 +10,6 @@ void main() {
 
   test('starts empty', () {
     final r = SyncReassembler();
-    expect(r.sessionId, isNull);
     expect(r.total, isNull);
     expect(r.received, 0);
     expect(r.isComplete, isFalse);
@@ -20,7 +20,6 @@ void main() {
     final r = SyncReassembler();
     final f = frames('aaa');
     expect(r.add(f[2]), FrameResult.accepted); // not frame 0
-    expect(r.sessionId, 'aaa');
     expect(r.total, 4);
     expect(r.received, 1);
 
@@ -78,7 +77,6 @@ void main() {
     expect(r.add(other[1]), FrameResult.otherSession);
     expect(r.add(other[0]), FrameResult.otherSession);
     expect(r.received, 1);
-    expect(r.sessionId, 'aaa');
 
     for (final i in [1, 2, 3]) {
       r.add(mine[i]);
@@ -102,19 +100,21 @@ void main() {
     final r = SyncReassembler();
     expect(r.add('https://example.com'), FrameResult.invalid);
     expect(r.add(''), FrameResult.invalid);
-    expect(r.sessionId, isNull);
+    expect(r.total, isNull); // junk locked nothing
     expect(r.add(frames('aaa')[0]), FrameResult.accepted); // still usable
   });
 
-  test('frame 0 supplies payload length and checksum, whenever it arrives', () {
+  test('frame 0 may arrive last: decode still checks against its header', () {
+    final good = buildFrames(
+      encodeCatalog(catalog(60)),
+      sessionId: 'aaa',
+      chunkSize: 400,
+    );
     final r = SyncReassembler();
-    final f = frames('aaa');
-    r.add(f[3]);
-    expect(r.payloadLength, isNull);
-    expect(r.checksum, isNull);
-    r.add(f[0]);
-    expect(r.payloadLength, 3500);
-    expect(r.checksum, crc32Hex(payload));
+    for (final f in [...good.skip(1), good.first]) {
+      r.add(f);
+    }
+    expect(r.decode(), hasLength(60));
   });
 
   test('a single-frame transfer completes immediately', () {
@@ -126,15 +126,8 @@ void main() {
 
   group('decode', () {
     final items = [
-      for (var i = 0; i < 120; i++)
-        Item(
-          barcode: '4800${(i * 7919 % 100000000).toString().padLeft(9, '0')}',
-          name: 'Item ${i * 31 % 977} brand ${i % 53}',
-          priceCents: 1000 + (i * 37 % 9000),
-          stockQty: i % 30,
-          updatedAt: 1760600000000 + i * 1234567,
-          deleted: i % 10 == 0,
-        ),
+      for (final (i, item) in catalog(120).indexed)
+        item.copyWith(deleted: i % 10 == 0),
     ];
     // Several frames (chunkSize 500 keeps the test payload multi-frame).
     final good = buildFrames(
@@ -215,15 +208,12 @@ void main() {
   group('full pipeline round trip (items -> frames -> reassembler -> items)', () {
     for (final n in [1, 50, 500]) {
       test('$n item(s)', () {
+        // Awkward values on purpose: a ₱ in names, negative stock, deleted items.
         final items = [
-          for (var i = 0; i < n; i++)
-            Item(
-              barcode:
-                  '4800${(i * 7919 % 100000000).toString().padLeft(9, '0')}',
-              name: 'Item ${i * 31 % 977} brand ${i % 53} ₱',
-              priceCents: 1000 + (i * 37 % 9000),
+          for (final (i, item) in catalog(n).indexed)
+            item.copyWith(
+              name: '${item.name} ₱',
               stockQty: (i % 30) - 2,
-              updatedAt: 1760600000000 + i * 1234567,
               deleted: i % 7 == 0,
             ),
         ];

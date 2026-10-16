@@ -53,10 +53,8 @@ Future<Database> openAppDb({DatabaseFactory? factory, String? path}) async {
           await db.execute(sql);
         }
       },
-      onUpgrade: (db, from, to) async {
-        // Nothing yet: v1 is the first schema. Add `if (from < 2) {...}` steps
-        // here when dbVersion is bumped.
-      },
+      // Bumping dbVersion needs an `onUpgrade: (db, from, to)` with `if (from < 2)`
+      // steps; v1 is the first schema, so there is nothing to upgrade yet.
     ),
   );
 }

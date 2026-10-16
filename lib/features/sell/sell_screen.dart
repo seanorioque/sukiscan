@@ -6,8 +6,11 @@ import '../../data/item_repository.dart';
 import '../../domain/item.dart';
 import '../../domain/cart.dart';
 import '../../shared/app_feedback.dart';
+import '../../shared/brand_app_bar.dart';
+import '../../shared/camera_card.dart';
 import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
+import '../../shared/ui_helpers.dart';
 import '../encode/encode_screen.dart';
 import 'cart_provider.dart';
 import 'checkout_sheet.dart';
@@ -56,13 +59,9 @@ class _SellScreenState extends ConsumerState<SellScreen> {
       // Nothing was added; the cooldown lets the same label be scanned again.
       if (mounted) {
         ref.read(feedbackProvider).error();
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(
-              content: Text('Could not look up that item. Please try again.'),
-            ),
-          );
+        ScaffoldMessenger.of(
+          context,
+        ).showMessage('Could not look up that item. Please try again.');
       }
       return;
     }
@@ -75,24 +74,13 @@ class _SellScreenState extends ConsumerState<SellScreen> {
     ref.read(feedbackProvider).error();
     _busy = true;
     try {
-      final encode = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Item not found'),
-          content: Text('No item has barcode $code. Encode it now?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Encode item'),
-            ),
-          ],
-        ),
+      final encode = await confirm(
+        context,
+        title: 'Item not found',
+        message: 'No item has barcode $code. Encode it now?',
+        yesLabel: 'Encode item',
       );
-      if (encode == true && mounted) {
+      if (encode && mounted) {
         await Navigator.push<void>(
           context,
           MaterialPageRoute(builder: (_) => EncodeScreen(initialBarcode: code)),
@@ -107,8 +95,7 @@ class _SellScreenState extends ConsumerState<SellScreen> {
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sell'),
+      appBar: BrandAppBar(
         actions: [
           IconButton(
             tooltip: 'Type barcode',
@@ -125,7 +112,10 @@ class _SellScreenState extends ConsumerState<SellScreen> {
       ),
       body: Column(
         children: [
-          Expanded(flex: 2, child: widget.scannerBuilder(_onScan)),
+          Expanded(
+            flex: 2,
+            child: CameraCard(child: widget.scannerBuilder(_onScan)),
+          ),
           Expanded(flex: 3, child: _CartList(cart)),
           _TotalBar(cart),
         ],
@@ -216,36 +206,44 @@ class _CartList extends ConsumerWidget {
     }
     final notifier = ref.read(cartProvider.notifier);
     return ListView(
+      padding: const EdgeInsets.only(bottom: 8),
       children: [
         for (final l in cart.lines)
-          ListTile(
-            title: Text(l.name),
-            subtitle: Text(
-              '${formatCents(l.unitPriceCents)} each · ${formatCents(l.totalCents)}',
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: 'Decrease',
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: () => notifier.decrement(l.barcode),
-                ),
-                Text(
-                  '${l.qty}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                IconButton(
-                  tooltip: 'Increase',
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => notifier.increment(l.barcode),
-                ),
-                IconButton(
-                  tooltip: 'Remove line',
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => notifier.remove(l.barcode),
-                ),
-              ],
+          Card(
+            child: ListTile(
+              title: Text(
+                l.name,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                '${formatCents(l.unitPriceCents)} each · ${formatCents(l.totalCents)}',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Decrease',
+                    icon: const Icon(Icons.remove_circle_outline),
+                    onPressed: () => notifier.decrement(l.barcode),
+                  ),
+                  Text(
+                    '${l.qty}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Increase',
+                    icon: const Icon(Icons.add_circle_outline),
+                    onPressed: () => notifier.increment(l.barcode),
+                  ),
+                  IconButton(
+                    tooltip: 'Remove line',
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => notifier.remove(l.barcode),
+                  ),
+                ],
+              ),
             ),
           ),
       ],
@@ -254,24 +252,13 @@ class _CartList extends ConsumerWidget {
 }
 
 Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Clear cart?'),
-      content: const Text('Remove all items from this sale?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Clear'),
-        ),
-      ],
-    ),
+  final ok = await confirm(
+    context,
+    title: 'Clear cart?',
+    message: 'Remove all items from this sale?',
+    yesLabel: 'Clear',
   );
-  if (ok == true) ref.read(cartProvider.notifier).clear();
+  if (ok) ref.read(cartProvider.notifier).clear();
 }
 
 class _TotalBar extends StatelessWidget {
@@ -282,35 +269,35 @@ class _TotalBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     return Material(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total', style: text.titleLarge),
-                  Text(
-                    formatCents(cart.totalCents),
-                    style: text.headlineMedium,
+      color: scheme.primaryContainer,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total', style: text.titleLarge),
+                Text(
+                  formatCents(cart.totalCents),
+                  style: text.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: scheme.onPrimaryContainer,
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: cart.isEmpty
-                    ? null
-                    : () => showCheckoutSheet(context),
-                child: const Text('Checkout'),
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: cart.isEmpty ? null : () => showCheckoutSheet(context),
+              child: const Text('Checkout'),
+            ),
+          ],
         ),
       ),
     );

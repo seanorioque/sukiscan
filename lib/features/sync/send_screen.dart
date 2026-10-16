@@ -8,15 +8,12 @@ import '../../data/sync_repository.dart';
 import '../../domain/sync_codec.dart';
 import '../../shared/empty_state.dart';
 
+/// How long each QR frame stays up while auto-advancing.
+const _frameTime = Duration(milliseconds: 500);
+
 /// Shows the catalog as a looping carousel of QR codes for another phone to scan.
 class SendScreen extends ConsumerStatefulWidget {
-  const SendScreen({
-    super.key,
-    this.interval = const Duration(milliseconds: 500),
-  });
-
-  /// How long each frame stays up while auto-advancing.
-  final Duration interval;
+  const SendScreen({super.key});
 
   @override
   ConsumerState<SendScreen> createState() => _SendScreenState();
@@ -61,7 +58,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     final frames = _frames;
     if (!_playing || frames == null || frames.length < 2) return;
     _timer = Timer.periodic(
-      widget.interval,
+      _frameTime,
       (_) => setState(() => _index = (_index + 1) % frames.length),
     );
   }

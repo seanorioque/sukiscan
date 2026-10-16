@@ -549,7 +549,7 @@ void main() {
 
       await tester.pageBack();
       await tester.pumpAndSettle();
-      expect(find.text('Sell'), findsOneWidget);
+      expect(find.byKey(const Key('brand-logo')), findsOneWidget);
       expect(find.text('Noodles'), findsNothing);
 
       scan('A');

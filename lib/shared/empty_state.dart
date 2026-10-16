@@ -9,6 +9,7 @@ class EmptyState extends StatelessWidget {
     this.title,
     this.actionLabel,
     this.onAction,
+    this.compact = false,
   });
 
   final IconData icon;
@@ -17,18 +18,22 @@ class EmptyState extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
 
+  /// Smaller icon and spacing, for tight spots like a result card.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    final gap = compact ? 6.0 : 12.0;
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(compact ? 12 : 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: color),
-            const SizedBox(height: 12),
+            Icon(icon, size: compact ? 32 : 48, color: color),
+            SizedBox(height: gap),
             if (title != null) ...[
               Text(
                 title!,
@@ -43,7 +48,7 @@ class EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             if (actionLabel != null) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: compact ? 10 : 16),
               FilledButton(onPressed: onAction, child: Text(actionLabel!)),
             ],
           ],

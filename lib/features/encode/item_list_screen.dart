@@ -4,10 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
+import '../../shared/brand_app_bar.dart';
 import '../../shared/empty_state.dart';
 import 'encode_screen.dart';
 
-/// Every saved item. Tap one to edit it; the button adds a new one.
+/// Encoding tab: every saved item. Tap one to edit it; the button adds a new one.
 class ItemListScreen extends ConsumerStatefulWidget {
   const ItemListScreen({super.key});
 
@@ -33,23 +34,37 @@ class _ItemListScreenState extends ConsumerState<ItemListScreen> {
     final items = ref.watch(itemListProvider);
     final count = items.asData?.value.length;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(count == null || count == 0 ? 'Items' : 'Items ($count)'),
-      ),
+      appBar: const BrandAppBar(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _open(const EncodeScreen()),
         icon: const Icon(Icons.add),
         label: const Text('Add item'),
       ),
-      body: items.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => EmptyState(
-          icon: Icons.error_outline,
-          message: 'Could not load your items. Please try again.',
-          actionLabel: 'Try again',
-          onAction: () => ref.invalidate(itemListProvider),
-        ),
-        data: (all) => all.isEmpty ? _empty() : _list(all),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+            child: Text(
+              count == null || count == 0 ? 'Items' : 'Items ($count)',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ),
+          Expanded(
+            child: items.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, _) => EmptyState(
+                icon: Icons.error_outline,
+                message: 'Could not load your items. Please try again.',
+                actionLabel: 'Try again',
+                onAction: () => ref.invalidate(itemListProvider),
+              ),
+              data: (all) => all.isEmpty ? _empty() : _list(all),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -64,6 +79,7 @@ class _ItemListScreenState extends ConsumerState<ItemListScreen> {
 
   Widget _list(List<Item> all) {
     final shown = all.where(_matches).toList();
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         Padding(
@@ -82,21 +98,28 @@ class _ItemListScreenState extends ConsumerState<ItemListScreen> {
                   icon: Icons.search_off,
                   message: 'No items match your search.',
                 )
-              : ListView.separated(
+              : ListView.builder(
                   // Room below the last row so the button never covers it.
                   padding: const EdgeInsets.only(bottom: 88),
                   itemCount: shown.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (_, i) {
                     final item = shown[i];
-                    return ListTile(
-                      title: Text(item.name),
-                      subtitle: Text(
-                        '${formatCents(item.priceCents)} · '
-                        'Stock: ${item.stockQty} · ${item.barcode}',
+                    return Card(
+                      child: ListTile(
+                        title: Text(
+                          item.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '${formatCents(item.priceCents)} · '
+                          'Stock: ${item.stockQty} · ${item.barcode}',
+                        ),
+                        trailing: Icon(
+                          Icons.edit_outlined,
+                          color: scheme.primary,
+                        ),
+                        onTap: () => _open(EncodeScreen(editItem: item)),
                       ),
-                      trailing: const Icon(Icons.edit_outlined),
-                      onTap: () => _open(EncodeScreen(editItem: item)),
                     );
                   },
                 ),

@@ -5,6 +5,8 @@ import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
 import '../../shared/app_feedback.dart';
+import '../../shared/brand_app_bar.dart';
+import '../../shared/camera_card.dart';
 import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
 import '../encode/encode_screen.dart';
@@ -72,17 +74,25 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     // While the count loads (or fails) assume items exist: no flash of the hint.
     final noItems = ref.watch(itemCountProvider).asData?.value == 0;
     return Scaffold(
-      appBar: AppBar(title: const Text('Read item')),
+      appBar: const BrandAppBar(),
       body: Column(
         children: [
-          Expanded(flex: 3, child: widget.scannerBuilder(_onScan)),
+          Expanded(
+            flex: 3,
+            child: CameraCard(child: widget.scannerBuilder(_onScan)),
+          ),
           Expanded(
             flex: 2,
-            child: _Result(
-              code: _code,
-              item: _item,
-              noItems: noItems,
-              onEncode: _encode,
+            child: Card(
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: SizedBox.expand(
+                child: _Result(
+                  code: _code,
+                  item: _item,
+                  noItems: noItems,
+                  onEncode: _encode,
+                ),
+              ),
             ),
           ),
         ],
@@ -111,6 +121,7 @@ class _Result extends StatelessWidget {
     if (code == null) {
       body = noItems
           ? EmptyState(
+              compact: true,
               icon: Icons.inventory_2_outlined,
               title: 'No items yet',
               message: 'Add your items in Encode, then scan them here.',
@@ -142,7 +153,13 @@ class _Result extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(formatCents(item!.priceCents), style: text.displaySmall),
+          Text(
+            formatCents(item!.priceCents),
+            style: text.displaySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 8),
           Text('Stock: ${item!.stockQty}', style: text.titleMedium),
           const SizedBox(height: 4),

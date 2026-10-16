@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'features/encode/item_list_screen.dart';
-import 'features/home/home_screen.dart';
-import 'features/read/read_screen.dart';
-import 'features/sell/sell_screen.dart';
+import 'core/theme.dart';
+import 'features/shell/app_shell.dart';
 import 'features/sync/sync_screen.dart';
 import 'shared/empty_state.dart';
+import 'shared/scanner_view.dart';
 
 /// Shown instead of the app when the database can't be opened at startup.
 class StartupErrorApp extends StatelessWidget {
@@ -17,9 +16,8 @@ class StartupErrorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SukiScan',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-      ),
+      theme: appTheme(Brightness.light),
+      darkTheme: appTheme(Brightness.dark),
       home: Scaffold(
         body: EmptyState(
           icon: Icons.error_outline,
@@ -36,22 +34,20 @@ class StartupErrorApp extends StatelessWidget {
 }
 
 class SukiScanApp extends StatelessWidget {
-  const SukiScanApp({super.key});
+  /// [scannerBuilder] replaces the camera on Read and Sell (for tests).
+  const SukiScanApp({super.key, this.scannerBuilder});
+
+  final ScannerBuilder? scannerBuilder;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SukiScan',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
+      theme: appTheme(Brightness.light),
+      darkTheme: appTheme(Brightness.dark),
       initialRoute: '/',
       routes: {
-        '/': (_) => const HomeScreen(),
-        '/encode': (_) => const ItemListScreen(),
-        '/read': (_) => const ReadScreen(),
-        '/sell': (_) => const SellScreen(),
+        '/': (_) => AppShell(scannerBuilder: scannerBuilder),
         '/sync': (_) => const SyncScreen(),
       },
     );

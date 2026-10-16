@@ -6,6 +6,7 @@ import '../../data/item_repository.dart';
 import '../../domain/cart.dart';
 import '../../shared/scanner_view.dart';
 import 'cart_provider.dart';
+import 'checkout_sheet.dart';
 
 const _cooldown = Duration(milliseconds: 1500);
 
@@ -53,7 +54,7 @@ class SellScreen extends ConsumerWidget {
             child: scannerBuilder((code) => _onScan(context, ref, code)),
           ),
           Expanded(flex: 3, child: _CartList(cart)),
-          _TotalBar(cart.totalCents),
+          _TotalBar(cart),
         ],
       ),
     );
@@ -131,25 +132,39 @@ Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
 }
 
 class _TotalBar extends StatelessWidget {
-  const _TotalBar(this.totalCents);
+  const _TotalBar(this.cart);
 
-  final int totalCents;
+  final Cart cart;
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     return Material(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Total', style: Theme.of(context).textTheme.titleLarge),
-              Text(
-                formatCents(totalCents),
-                style: Theme.of(context).textTheme.headlineMedium,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Total', style: text.titleLarge),
+                  Text(
+                    formatCents(cart.totalCents),
+                    style: text.headlineMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              FilledButton(
+                onPressed: cart.isEmpty
+                    ? null
+                    : () => showCheckoutSheet(context),
+                child: const Text('Checkout'),
               ),
             ],
           ),

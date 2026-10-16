@@ -146,6 +146,8 @@ CsvImport parseItemsCsv(Uint8List bytes) {
       stock = int.tryParse(stockText);
       if (stock == null) {
         causes.add('stock quantity "$stockText" is not a whole number');
+      } else if (stock < 0) {
+        causes.add('stock quantity "$stockText" cannot be below 0');
       }
     }
 

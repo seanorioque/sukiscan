@@ -121,8 +121,10 @@ void main() {
       expect(r.items.map((i) => i.priceCents), [1250, 1500, 123450, 5]);
     });
 
-    test('negative stock is accepted (sales can take stock below zero)', () {
-      expect(read('1,A,1,-3\n').items.single.stockQty, -3);
+    test('negative stock is refused', () {
+      final r = read('1,A,1,-3\n');
+      expect(r.ok, isFalse);
+      expect(r.problems, ['Row 2: stock quantity "-3" cannot be below 0.']);
     });
 
     test('names with commas, quotes and line breaks', () {
@@ -292,7 +294,7 @@ void main() {
         priceCents: 1500,
         stockQty: 24,
       ),
-      Item(barcode: '111', name: 'Gum', priceCents: 5, stockQty: -2),
+      Item(barcode: '111', name: 'Gum', priceCents: 5, stockQty: 2),
     ];
 
     test('has the column names, one row per item, prices as 15.00', () {
@@ -300,7 +302,7 @@ void main() {
         itemsToCsv(items),
         '﻿$header\r\n'
         '4800016644290,Pancit Canton,15.00,24\r\n'
-        '111,Gum,0.05,-2\r\n',
+        '111,Gum,0.05,2\r\n',
       );
     });
 
@@ -331,7 +333,7 @@ void main() {
           barcode: 'ABC-123',
           name: 'two\nlines',
           priceCents: 1,
-          stockQty: -3,
+          stockQty: 3,
         ),
         Item(barcode: '007', name: 'Leading zeros', priceCents: 250),
       ];

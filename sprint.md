@@ -28,7 +28,7 @@
 - [x] Validation: name required, price > 0, barcode not blank
 - [x] Existing barcode → open in edit mode (no duplicate)
 - [x] Delete button → soft delete
-- [ ] Riverpod providers wiring screen → repository
+- [x] Riverpod providers wiring screen → repository
 
 **Done when:** items survive an app restart.
 

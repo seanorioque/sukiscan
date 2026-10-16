@@ -224,6 +224,17 @@ enum FrameResult {
   invalid,
 }
 
+/// The reassembled data doesn't match the length / CRC-32 the sender announced,
+/// i.e. a frame was misread. Nothing from the transfer may be used.
+class SyncChecksumException implements Exception {
+  const SyncChecksumException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'SyncChecksumException: $message';
+}
+
 /// Collects scanned frames of ONE transfer. Frames may arrive in any order and
 /// any number of times. Locks onto the session of the first valid frame.
 class SyncReassembler {
@@ -253,6 +264,25 @@ class SyncReassembler {
   String? get assembled => isComplete
       ? [for (var i = 0; i < _total!; i++) _chunks[i]!].join()
       : null;
+
+  /// Checks the assembled payload against frame 0's length and CRC-32, then
+  /// base64-decodes, gunzips and parses it into items.
+  ///
+  /// Throws [SyncChecksumException] if the data was damaged in transit (a
+  /// misread frame): the whole transfer must be rejected and scanned again.
+  /// Throws [FormatException] if the data is intact but isn't a valid catalog.
+  /// Throws [StateError] if called before every frame has arrived.
+  List<Item> decode() {
+    final payload = assembled;
+    if (payload == null) throw StateError('transfer is not complete');
+    if (payload.length != _payloadLength) {
+      throw const SyncChecksumException('length mismatch');
+    }
+    if (crc32Hex(payload) != _checksum) {
+      throw const SyncChecksumException('checksum mismatch');
+    }
+    return decodeCatalog(payload);
+  }
 
   FrameResult add(String raw) {
     final SyncFrame f;

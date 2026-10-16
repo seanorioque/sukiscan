@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
+import '../../shared/app_feedback.dart';
 import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
 import '../encode/encode_screen.dart';
@@ -35,6 +36,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     } catch (_) {
       if (!mounted) return;
       _code = null; // forget it, so scanning the same label again retries
+      ref.read(feedbackProvider).error();
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -45,6 +47,8 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
       return;
     }
     if (!mounted || code != _code) return; // a newer scan won the race
+    final feedback = ref.read(feedbackProvider);
+    item == null ? feedback.error() : feedback.scan(); // not found buzzes
     setState(() => _item = item);
   }
 

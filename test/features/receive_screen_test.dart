@@ -6,7 +6,10 @@ import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/domain/sync_codec.dart';
 import 'package:sukiscan/features/sync/receive_screen.dart';
 
+import 'package:sukiscan/shared/app_feedback.dart';
+
 import '../helpers/fake_sync_repo.dart';
+import '../helpers/recording_feedback.dart';
 
 List<Item> catalog(int n) => [
   for (var i = 0; i < n; i++)
@@ -19,7 +22,11 @@ List<Item> catalog(int n) => [
     ),
 ];
 
+final feedback = RecordingFeedback();
+
 void main() {
+  setUp(feedback.events.clear);
+
   late FakeSyncRepo repo;
   late void Function(String) scan;
   final items = catalog(150);
@@ -29,7 +36,10 @@ void main() {
     repo = FakeSyncRepo();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [syncRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          syncRepositoryProvider.overrideWithValue(repo),
+          feedbackProvider.overrideWithValue(feedback),
+        ],
         child: MaterialApp(
           home: Builder(
             builder: (context) => Scaffold(
@@ -126,6 +136,59 @@ void main() {
     await tester.pump();
     expect(find.textContaining('not from SukiScan'), findsNothing);
     expect(find.text('Received 2 of ${frames.length}'), findsOneWidget);
+  });
+
+  testWidgets('feedback: one tick per new frame, then success when complete', (
+    tester,
+  ) async {
+    await open(tester);
+    scan(frames[0]);
+    scan(frames[0]); // duplicate: silent
+    scan(frames[1]);
+    scan('https://example.com'); // not ours: silent
+    scan(
+      buildFrames('QUJDRA==', sessionId: 'zzz').single,
+    ); // other transfer: silent
+    await tester.pump();
+    expect(feedback.events, ['scan', 'scan']);
+
+    for (final f in frames.skip(2)) {
+      scan(f);
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    // The last frame gets the success cue instead of a tick.
+    expect(feedback.events, [
+      ...List.filled(frames.length - 1, 'scan'),
+      'success',
+    ]);
+  });
+
+  testWidgets('feedback: a damaged transfer buzzes and gives no success cue', (
+    tester,
+  ) async {
+    await open(tester);
+    await scanAll(tester, [...frames]..[1] = corrupt(frames[1]));
+    expect(feedback.events.last, 'error');
+    expect(feedback.events, isNot(contains('success')));
+  });
+
+  testWidgets('feedback: importing gives success, a failed import buzzes', (
+    tester,
+  ) async {
+    await open(tester);
+    await scanAll(tester);
+    feedback.events.clear();
+    repo.failMerge = true;
+
+    await tester.tap(find.text('Confirm and import'));
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error']);
+
+    repo.failMerge = false;
+    await tester.tap(find.text('Confirm and import'));
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error', 'success']);
   });
 
   testWidgets('a complete transfer shows the preview; nothing is merged yet', (

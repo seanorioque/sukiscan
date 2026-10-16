@@ -5,6 +5,7 @@ import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
 import '../../domain/cart.dart';
+import '../../shared/app_feedback.dart';
 import '../../shared/empty_state.dart';
 import '../../shared/scanner_view.dart';
 import '../encode/encode_screen.dart';
@@ -14,7 +15,7 @@ import 'checkout_sheet.dart';
 const _cooldown = Duration(milliseconds: 1500);
 
 Widget _defaultScanner(void Function(String code) onScan) =>
-    ScannerView(onScan: onScan, cooldown: _cooldown, feedback: true);
+    ScannerView(onScan: onScan, cooldown: _cooldown);
 
 /// Continuous scanning: every accepted scan adds the item to the cart, or +1.
 class SellScreen extends ConsumerStatefulWidget {
@@ -54,6 +55,7 @@ class _SellScreenState extends ConsumerState<SellScreen> {
     } catch (_) {
       // Nothing was added; the cooldown lets the same label be scanned again.
       if (mounted) {
+        ref.read(feedbackProvider).error();
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -67,8 +69,10 @@ class _SellScreenState extends ConsumerState<SellScreen> {
     if (!mounted || _busy) return;
     if (item != null) {
       ref.read(cartProvider.notifier).add(item);
+      ref.read(feedbackProvider).scan();
       return;
     }
+    ref.read(feedbackProvider).error();
     _busy = true;
     try {
       final encode = await showDialog<bool>(

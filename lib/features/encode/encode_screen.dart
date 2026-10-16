@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/money.dart';
 import '../../data/item_repository.dart';
 import '../../domain/item.dart';
+import '../../shared/app_feedback.dart';
 import '../../shared/scanner_view.dart';
 
 String? _required(String? v, String message) =>
@@ -57,6 +58,7 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
       MaterialPageRoute(builder: (_) => const _ScanPage()),
     );
     if (code == null) return;
+    ref.read(feedbackProvider).scan();
     _barcode.text = code;
     await _tryLookup();
   }
@@ -66,7 +68,10 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
     try {
       await _lookup();
     } catch (_) {
-      if (mounted) _snack('Could not look up that barcode. Please try again.');
+      if (mounted) {
+        ref.read(feedbackProvider).error();
+        _snack('Could not look up that barcode. Please try again.');
+      }
     }
   }
 
@@ -109,11 +114,15 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
           );
     } catch (_) {
       // The form is left as it was so nothing has to be retyped.
-      if (mounted) _snack('Could not save the item. Please try again.');
+      if (mounted) {
+        ref.read(feedbackProvider).error();
+        _snack('Could not save the item. Please try again.');
+      }
       return;
     }
     if (!mounted) return;
     ref.invalidate(itemCountProvider);
+    ref.read(feedbackProvider).success();
     _snack('Item saved');
     _clearForm();
   }
@@ -141,11 +150,15 @@ class _EncodeScreenState extends ConsumerState<EncodeScreen> {
     try {
       await ref.read(itemRepositoryProvider).softDelete(item.barcode);
     } catch (_) {
-      if (mounted) _snack('Could not delete the item. Please try again.');
+      if (mounted) {
+        ref.read(feedbackProvider).error();
+        _snack('Could not delete the item. Please try again.');
+      }
       return;
     }
     if (!mounted) return;
     ref.invalidate(itemCountProvider);
+    ref.read(feedbackProvider).success();
     _snack('Item deleted');
     _clearForm();
   }

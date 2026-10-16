@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/money.dart';
 import '../../data/sale_repository.dart';
+import '../../shared/app_feedback.dart';
 import 'cart_provider.dart';
 
 /// Bottom sheet: optional cash tendered, change due, and Confirm.
@@ -47,6 +48,7 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
     } catch (e) {
       // Nothing was written (single transaction); keep the cart so the user can retry.
       if (mounted) {
+        ref.read(feedbackProvider).error();
         setState(() {
           _saving = false;
           _error = 'Could not save the sale. Please try again.';
@@ -55,6 +57,7 @@ class _CheckoutSheetState extends ConsumerState<CheckoutSheet> {
       return;
     }
     ref.read(cartProvider.notifier).clear();
+    ref.read(feedbackProvider).success();
     navigator.pop();
     messenger
       ..hideCurrentSnackBar()

@@ -6,10 +6,17 @@ import 'package:sukiscan/data/sale_repository.dart';
 import 'package:sukiscan/domain/item.dart';
 import 'package:sukiscan/features/sell/sell_screen.dart';
 
+import 'package:sukiscan/shared/app_feedback.dart';
+
 import '../helpers/fake_item_repo.dart';
+import '../helpers/recording_feedback.dart';
 import '../helpers/fake_sale_repo.dart';
 
+final feedback = RecordingFeedback();
+
 void main() {
+  setUp(feedback.events.clear);
+
   const noodles = Item(barcode: 'A', name: 'Noodles', priceCents: 1500);
   const gum = Item(barcode: 'B', name: 'Gum', priceCents: 250);
 
@@ -31,6 +38,7 @@ void main() {
         overrides: [
           itemRepositoryProvider.overrideWithValue(repo),
           saleRepositoryProvider.overrideWithValue(sales),
+          feedbackProvider.overrideWithValue(feedback),
         ],
         child: MaterialApp(
           home: SellScreen(
@@ -409,6 +417,70 @@ void main() {
     scan('A'); // and works again afterwards
     await tester.pumpAndSettle();
     expect(find.text('Noodles'), findsOneWidget);
+  });
+
+  testWidgets('feedback: each added item ticks, an unknown barcode buzzes', (
+    tester,
+  ) async {
+    await pump(tester);
+    scan('A');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan']);
+
+    scan('B');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan', 'scan']);
+
+    scan('nope');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan', 'scan', 'error']);
+  });
+
+  testWidgets('feedback: a failed lookup buzzes', (tester) async {
+    await pump(tester);
+    items.failReads = true;
+    scan('A');
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error']);
+  });
+
+  testWidgets('feedback: typing a barcode in gives the same tick as a scan', (
+    tester,
+  ) async {
+    await pump(tester);
+    await openManual(tester);
+    await typeBarcode(tester, 'A');
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['scan']);
+  });
+
+  testWidgets('feedback: a saved sale gives the success cue', (tester) async {
+    await pump(tester);
+    await openCheckout(tester); // two scans
+    feedback.events.clear();
+
+    await tester.tap(confirmButton());
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['success']);
+  });
+
+  testWidgets('feedback: a failed sale buzzes, the retry succeeds', (
+    tester,
+  ) async {
+    await pump(tester);
+    sales.fail = true;
+    await openCheckout(tester);
+    feedback.events.clear();
+
+    await tester.tap(confirmButton());
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error']);
+
+    sales.fail = false;
+    await tester.tap(confirmButton());
+    await tester.pumpAndSettle();
+    expect(feedback.events, ['error', 'success']);
   });
 
   testWidgets('unknown barcode raises an alert and is not added', (

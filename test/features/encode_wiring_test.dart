@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sukiscan/core/clock.dart';
-import 'package:sukiscan/core/db.dart';
-import 'package:sukiscan/data/item_repository.dart';
-import 'package:sukiscan/features/encode/encode_screen.dart';
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/core/clock.dart';
+import 'package:tindascan/core/db.dart';
+import 'package:tindascan/data/item_repository.dart';
+import 'package:tindascan/features/encode/encode_screen.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 Finder field(String label) => find.widgetWithText(TextFormField, label);
 

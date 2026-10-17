@@ -1,6 +1,6 @@
-import 'package:sukiscan/data/sale_repository.dart';
-import 'package:sukiscan/domain/cart.dart';
-import 'package:sukiscan/domain/sale.dart';
+import 'package:tindascan/data/sale_repository.dart';
+import 'package:tindascan/domain/cart.dart';
+import 'package:tindascan/domain/sale.dart';
 
 /// In-memory SaleRepository for widget tests: records calls, can be made to fail.
 class FakeSaleRepo implements SaleRepository {

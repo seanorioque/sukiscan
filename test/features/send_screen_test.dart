@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:sukiscan/data/sync_repository.dart';
-import 'package:sukiscan/domain/sync_codec.dart';
-import 'package:sukiscan/features/sync/send_screen.dart';
+import 'package:tindascan/data/sync_repository.dart';
+import 'package:tindascan/domain/sync_codec.dart';
+import 'package:tindascan/features/sync/send_screen.dart';
 
 import '../helpers/catalog.dart';
 import '../helpers/fake_sync_repo.dart';

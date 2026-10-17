@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/domain/sync_codec.dart';
+import 'package:tindascan/domain/sync_codec.dart';
 
 import '../helpers/catalog.dart';
 

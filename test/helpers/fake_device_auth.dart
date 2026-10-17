@@ -1,4 +1,4 @@
-import 'package:sukiscan/data/device_auth.dart';
+import 'package:tindascan/data/device_auth.dart';
 
 /// Stands in for the phone's lock screen: answers with [outcome] and records
 /// every time it was asked.

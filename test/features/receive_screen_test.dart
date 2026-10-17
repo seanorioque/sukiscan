@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/data/sync_repository.dart';
-import 'package:sukiscan/domain/sync_codec.dart';
-import 'package:sukiscan/features/sync/receive_screen.dart';
+import 'package:tindascan/data/sync_repository.dart';
+import 'package:tindascan/domain/sync_codec.dart';
+import 'package:tindascan/features/sync/receive_screen.dart';
 
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 import '../helpers/catalog.dart';
 import '../helpers/fake_sync_repo.dart';
@@ -105,7 +105,7 @@ void main() {
     );
   });
 
-  testWidgets('hints on other transfers and non-SukiScan codes, keeps going', (
+  testWidgets('hints on other transfers and non-TindaScan codes, keeps going', (
     tester,
   ) async {
     await open(tester);
@@ -119,11 +119,11 @@ void main() {
 
     scan('https://example.com');
     await tester.pump();
-    expect(find.textContaining('not from SukiScan'), findsOneWidget);
+    expect(find.textContaining('not from TindaScan'), findsOneWidget);
 
     scan(frames[1]); // a good frame clears the hint
     await tester.pump();
-    expect(find.textContaining('not from SukiScan'), findsNothing);
+    expect(find.textContaining('not from TindaScan'), findsNothing);
     expect(find.text('Received 2 of ${frames.length}'), findsOneWidget);
   });
 
@@ -265,7 +265,7 @@ void main() {
     await scanAll(tester, buildFrames('QUJDRA==', sessionId: 'xyz'));
 
     expect(
-      find.textContaining('not a valid SukiScan item list'),
+      find.textContaining('not a valid TindaScan item list'),
       findsOneWidget,
     );
     expect(repo.merged, isEmpty);

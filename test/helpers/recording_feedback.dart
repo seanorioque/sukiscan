@@ -1,4 +1,4 @@
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 /// Records which feedback a screen asked for instead of buzzing the phone.
 class RecordingFeedback implements AppFeedback {

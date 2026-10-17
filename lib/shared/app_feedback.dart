@@ -48,15 +48,17 @@ final _player = AudioPlayer()
     AudioContext(
       android: const AudioContextAndroid(
         audioFocus: AndroidAudioFocus.none,
-        usageType: AndroidUsageType.assistanceSonification,
+        usageType: AndroidUsageType.media,
         contentType: AndroidContentType.sonification,
       ),
     ),
-  )
-  ..setPlayerMode(PlayerMode.lowLatency);
+  );
 
-Future<void> _playAsset(String name) =>
-    _player.play(AssetSource('sounds/$name.wav'));
+// stop() first: a finished/overlapping clip otherwise swallows the next play().
+Future<void> _playAsset(String name) async {
+  await _player.stop();
+  await _player.play(AssetSource('sounds/$name.wav'));
+}
 
 /// Overridden in tests with a recorder.
 final feedbackProvider = Provider<AppFeedback>((_) => const AppFeedback());

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io' show gzip;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/domain/item.dart';
-import 'package:sukiscan/domain/sync_codec.dart';
+import 'package:tindascan/domain/item.dart';
+import 'package:tindascan/domain/sync_codec.dart';
 
 import '../helpers/catalog.dart';
 

@@ -90,7 +90,7 @@ class ScannerErrorView extends StatelessWidget {
       MobileScannerErrorCode.permissionDenied => (
         Icons.no_photography,
         'Camera permission is needed to scan barcodes.\n'
-            'Allow it in the prompt, or in Settings > Apps > SukiScan > Permissions.',
+            'Allow it in the prompt, or in Settings > Apps > TindaScan > Permissions.',
       ),
       MobileScannerErrorCode.unsupported => (
         Icons.no_photography,

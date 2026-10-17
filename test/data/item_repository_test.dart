@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sukiscan/core/db.dart';
-import 'package:sukiscan/data/item_repository.dart';
-import 'package:sukiscan/domain/item.dart';
-import 'package:sukiscan/domain/items_csv.dart';
+import 'package:tindascan/core/db.dart';
+import 'package:tindascan/data/item_repository.dart';
+import 'package:tindascan/domain/item.dart';
+import 'package:tindascan/domain/items_csv.dart';
 
 void main() {
   sqfliteFfiInit();

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/domain/item.dart';
-import 'package:sukiscan/domain/items_csv.dart';
+import 'package:tindascan/domain/item.dart';
+import 'package:tindascan/domain/items_csv.dart';
 
 Uint8List bytes(String s) => Uint8List.fromList(utf8.encode(s));
 

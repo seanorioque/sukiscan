@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 void main() {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();

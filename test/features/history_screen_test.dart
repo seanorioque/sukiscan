@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/data/device_auth.dart';
-import 'package:sukiscan/data/sale_repository.dart';
-import 'package:sukiscan/domain/sale.dart';
-import 'package:sukiscan/features/history/history_screen.dart';
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/data/device_auth.dart';
+import 'package:tindascan/data/sale_repository.dart';
+import 'package:tindascan/domain/sale.dart';
+import 'package:tindascan/features/history/history_screen.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 import '../helpers/fake_device_auth.dart';
 import '../helpers/fake_sale_repo.dart';

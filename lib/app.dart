@@ -16,13 +16,13 @@ class StartupErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SukiScan',
+      title: 'TindaScan',
       theme: appTheme(Brightness.light),
       darkTheme: appTheme(Brightness.dark),
       home: Scaffold(
         body: EmptyState(
           icon: Icons.error_outline,
-          title: "SukiScan couldn't open your items",
+          title: "TindaScan couldn't open your items",
           message:
               'Make sure your phone has free storage space, then try again. '
               'Your items have not been deleted.',
@@ -34,16 +34,16 @@ class StartupErrorApp extends StatelessWidget {
   }
 }
 
-class SukiScanApp extends StatelessWidget {
+class TindaScanApp extends StatelessWidget {
   /// [scannerBuilder] replaces the camera on Read and Sell (for tests).
-  const SukiScanApp({super.key, this.scannerBuilder});
+  const TindaScanApp({super.key, this.scannerBuilder});
 
   final ScannerBuilder? scannerBuilder;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SukiScan',
+      title: 'TindaScan',
       theme: appTheme(Brightness.light),
       darkTheme: appTheme(Brightness.dark),
       initialRoute: '/',

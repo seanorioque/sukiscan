@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/core/clock.dart';
+import 'package:tindascan/core/clock.dart';
 
 void main() {
   test('default clock returns current epoch ms', () {

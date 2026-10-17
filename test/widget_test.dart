@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/app.dart';
-import 'package:sukiscan/core/theme.dart';
-import 'package:sukiscan/data/item_repository.dart';
-import 'package:sukiscan/domain/item.dart';
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/app.dart';
+import 'package:tindascan/core/theme.dart';
+import 'package:tindascan/data/item_repository.dart';
+import 'package:tindascan/domain/item.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 import 'helpers/fake_item_repo.dart';
 import 'helpers/recording_feedback.dart';
@@ -59,7 +59,7 @@ void main() {
           itemRepositoryProvider.overrideWithValue(repo),
           feedbackProvider.overrideWithValue(RecordingFeedback()),
         ],
-        child: SukiScanApp(
+        child: TindaScanApp(
           scannerBuilder: (onScan) {
             scan = onScan;
             return _CameraProbe(cameras);
@@ -84,13 +84,13 @@ void main() {
   }
 
   group('top bar', () {
-    testWidgets('shows the SukiScan wordmark and a menu button on the right', (
+    testWidgets('shows the TindaScan wordmark and a menu button on the right', (
       tester,
     ) async {
       await pumpApp(tester);
 
       expect(find.byKey(const Key('brand-logo')), findsOneWidget);
-      expect(find.bySemanticsLabel('SukiScan'), findsOneWidget);
+      expect(find.bySemanticsLabel('TindaScan'), findsOneWidget);
       final menu = find.byTooltip('Menu');
       expect(menu, findsOneWidget);
 
@@ -271,7 +271,7 @@ void main() {
     var retried = 0;
     await tester.pumpWidget(StartupErrorApp(onRetry: () => retried++));
 
-    expect(find.text("SukiScan couldn't open your items"), findsOneWidget);
+    expect(find.text("TindaScan couldn't open your items"), findsOneWidget);
     expect(find.textContaining('free storage space'), findsOneWidget);
     expect(find.textContaining('have not been deleted'), findsOneWidget);
 

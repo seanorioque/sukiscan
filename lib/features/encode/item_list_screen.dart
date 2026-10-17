@@ -93,7 +93,7 @@ class _ItemListScreenState extends ConsumerState<ItemListScreen> {
       final saved = await ref
           .read(csvFilesProvider)
           .save(
-            'sukiscan-items-$day.csv',
+            'tindascan-items-$day.csv',
             Uint8List.fromList(utf8.encode(itemsToCsv(items))),
           );
       if (!saved) return; // cancelled

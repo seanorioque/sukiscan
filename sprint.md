@@ -1,4 +1,4 @@
-# SukiScan — Sprint 1
+# TindaScan — Sprint 1
 
 **Goal:** A running app where a store owner can add, edit, and look up items by barcode, with all data persisting locally.
 **Scope:** M0 (setup) + M1 (data layer) + M2 (encoding) + M3 (reading), per [plan.md](plan.md).

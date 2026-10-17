@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// The app name as a small wordmark: a gradient scanner badge + "Suki" in a
+/// The app name as a small wordmark: a gradient scanner badge + "Tinda" in a
 /// light weight and "Scan" in heavy accent colour.
 class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key});
@@ -9,7 +9,7 @@ class BrandLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Semantics(
-      label: 'SukiScan',
+      label: 'TindaScan',
       excludeSemantics: true,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -36,7 +36,7 @@ class BrandLogo extends StatelessWidget {
             TextSpan(
               children: [
                 const TextSpan(
-                  text: 'Suki',
+                  text: 'Tinda',
                   style: TextStyle(fontWeight: FontWeight.w400),
                 ),
                 TextSpan(

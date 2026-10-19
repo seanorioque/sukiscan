@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/domain/cart.dart';
-import 'package:sukiscan/domain/item.dart';
+import 'package:tindascan/domain/cart.dart';
+import 'package:tindascan/domain/item.dart';
 
 void main() {
   const noodles = Item(barcode: 'A', name: 'Noodles', priceCents: 1500);

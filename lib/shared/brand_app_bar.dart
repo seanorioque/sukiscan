@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// The app name as a small wordmark: a gradient scanner badge + "Suki" in a
+/// The app name as a small wordmark: the sari-sari store logo + "Tinda" in a
 /// light weight and "Scan" in heavy accent colour.
 class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key});
@@ -9,34 +9,18 @@ class BrandLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Semantics(
-      label: 'SukiScan',
+      label: 'TindaScan',
       excludeSemantics: true,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(11),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [scheme.primary, scheme.tertiary],
-              ),
-            ),
-            child: Icon(
-              Icons.qr_code_scanner,
-              color: scheme.onPrimary,
-              size: 22,
-            ),
-          ),
+          Image.asset('assets/logo.png', height: 40),
           const SizedBox(width: 10),
           Text.rich(
             TextSpan(
               children: [
                 const TextSpan(
-                  text: 'Suki',
+                  text: 'Tinda',
                   style: TextStyle(fontWeight: FontWeight.w400),
                 ),
                 TextSpan(
@@ -58,18 +42,12 @@ class BrandLogo extends StatelessWidget {
   }
 }
 
-/// One entry in the top bar's menu.
-class MenuAction {
-  const MenuAction(this.label, this.icon, this.onTap);
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-}
+/// One entry in the top bar's menu: label, icon, what it does.
+typedef MenuAction = (String, IconData, VoidCallback);
 
 /// Top bar for the main tabs: the wordmark on the left, the tab's own actions,
-/// then a menu (hamburger) on the far right. The menu always has Sync, plus
-/// any [menuActions] the tab adds (e.g. CSV import/export).
+/// then a menu (hamburger) on the far right. The menu always has Purchase
+/// history and Sync, plus any [menuActions] the tab adds (e.g. CSV import/export).
 class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BrandAppBar({
     super.key,
@@ -88,8 +66,13 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final all = [
-      MenuAction(
+    final List<MenuAction> all = [
+      (
+        'Purchase history',
+        Icons.receipt_long_outlined,
+        () => Navigator.pushNamed(context, '/history'),
+      ),
+      (
         'Sync with another phone',
         Icons.sync_alt,
         () => Navigator.pushNamed(context, '/sync'),
@@ -101,19 +84,19 @@ class BrandAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: const BrandLogo(key: Key('brand-logo')),
       actions: [
         ...actions,
-        PopupMenuButton<MenuAction>(
+        PopupMenuButton<VoidCallback>(
           tooltip: 'Menu',
           icon: const Icon(Icons.menu),
-          onSelected: (a) => a.onTap(),
+          onSelected: (run) => run(),
           itemBuilder: (_) => [
-            for (final a in all)
+            for (final (label, icon, run) in all)
               PopupMenuItem(
-                value: a,
+                value: run,
                 child: Row(
                   children: [
-                    Icon(a.icon, size: 20),
+                    Icon(icon, size: 20),
                     const SizedBox(width: 12),
-                    Flexible(child: Text(a.label)),
+                    Flexible(child: Text(label)),
                   ],
                 ),
               ),

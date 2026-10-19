@@ -1,6 +1,6 @@
-import 'package:sukiscan/data/item_repository.dart';
-import 'package:sukiscan/domain/item.dart';
-import 'package:sukiscan/domain/items_csv.dart';
+import 'package:tindascan/data/item_repository.dart';
+import 'package:tindascan/domain/item.dart';
+import 'package:tindascan/domain/items_csv.dart';
 
 /// In-memory ItemRepository for widget tests (no SQLite).
 class FakeItemRepo implements ItemRepository {

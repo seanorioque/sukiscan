@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:uuid/uuid.dart';
 
 import '../core/clock.dart';
 import '../core/db.dart';
 import '../domain/cart.dart';
+import '../domain/sale.dart';
 
 final saleRepositoryProvider = Provider(
   (ref) =>
@@ -13,7 +13,8 @@ final saleRepositoryProvider = Provider(
 
 class SaleRepository {
   SaleRepository(this._db, this._now, {String Function()? newId})
-    : _newId = newId ?? (() => const Uuid().v4());
+    : _newId =
+          newId ?? (() => DateTime.now().microsecondsSinceEpoch.toString());
 
   final Database _db;
   final Clock _now;
@@ -56,4 +57,61 @@ class SaleRepository {
     });
     return id;
   }
+
+  /// Every sale, newest first.
+  Future<List<SaleSummary>> history() async {
+    final rows = await _db.rawQuery('''
+SELECT s.id, s.created_at, s.total_cents, s.cash_cents,
+       COALESCE(SUM(i.qty), 0) AS item_count
+FROM sales s LEFT JOIN sale_items i ON i.sale_id = s.id
+GROUP BY s.id
+ORDER BY s.created_at DESC, s.rowid DESC''');
+    return [
+      for (final r in rows)
+        SaleSummary(
+          id: r['id'] as String,
+          createdAt: r['created_at'] as int,
+          totalCents: r['total_cents'] as int,
+          cashCents: r['cash_cents'] as int?,
+          itemCount: r['item_count'] as int,
+        ),
+    ];
+  }
+
+  Future<List<SaleLine>> lines(String saleId) async {
+    final rows = await _db.query(
+      'sale_items',
+      where: 'sale_id = ?',
+      whereArgs: [saleId],
+      orderBy: 'rowid',
+    );
+    return [
+      for (final r in rows)
+        SaleLine(
+          barcode: r['barcode'] as String,
+          name: r['name_snapshot'] as String,
+          unitPriceCents: r['unit_price_cents'] as int,
+          qty: r['qty'] as int,
+        ),
+    ];
+  }
+
+  /// Deletes these sales and their lines in ONE transaction. Stock is not
+  /// given back: this only tidies the history. Returns how many were deleted.
+  Future<int> deleteSales(Iterable<String> ids) => _db.transaction((txn) async {
+    var n = 0;
+    for (final id in ids) {
+      n += await txn.delete('sales', where: 'id = ?', whereArgs: [id]);
+    }
+    return n;
+  });
 }
+
+final saleHistoryProvider = FutureProvider.autoDispose<List<SaleSummary>>(
+  (ref) => ref.watch(saleRepositoryProvider).history(),
+);
+
+final saleLinesProvider = FutureProvider.autoDispose
+    .family<List<SaleLine>, String>(
+      (ref, id) => ref.watch(saleRepositoryProvider).lines(id),
+    );

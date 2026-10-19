@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:sukiscan/data/csv_files.dart';
+import 'package:tindascan/data/csv_files.dart';
 
 /// Stands in for the system file picker / save dialog.
 class FakeCsvFiles implements CsvFiles {

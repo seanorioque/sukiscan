@@ -1,10 +1,10 @@
-# SukiScan — Project Plan
+# TindaScan — Project Plan
 
 > Working title. An offline Android barcode point-of-sale app with QR-based device-to-device sync.
 
 ## 1. Overview
 
-SukiScan lets a small store encode its products by barcode, look them up instantly, ring up sales with a live running total, and copy its catalog to another phone by scanning QR codes. Everything is stored locally on the device, and no internet connection or server is required.
+TindaScan lets a small store encode its products by barcode, look them up instantly, ring up sales with a live running total, and copy its catalog to another phone by scanning QR codes. Everything is stored locally on the device, and no internet connection or server is required.
 
 ### Goals
 - Work fully offline on low- to mid-range Android phones
@@ -71,8 +71,8 @@ Copy the item catalog from one device to another.
 
 ### Setup
 ```bash
-flutter create --org com.yourname --platforms android sukiscan
-cd sukiscan
+flutter create --org com.yourname --platforms android tindascan
+cd tindascan
 flutter pub add mobile_scanner qr_flutter sqflite path flutter_riverpod intl uuid
 flutter pub add --dev sqflite_common_ffi
 ```

@@ -139,7 +139,7 @@ class SyncFrame {
   factory SyncFrame.parse(String raw) {
     final parts = raw.split('|');
     if (parts.length < 4 || parts[0] != _magic) {
-      throw const FormatException('not a SukiScan frame');
+      throw const FormatException('not a TindaScan frame');
     }
     final sid = parts[1];
     if (!_sessionRe.hasMatch(sid)) throw const FormatException('bad session');

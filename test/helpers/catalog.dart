@@ -1,4 +1,4 @@
-import 'package:sukiscan/domain/item.dart';
+import 'package:tindascan/domain/item.dart';
 
 /// [n] realistic-looking items with distinct barcodes, for sync tests.
 List<Item> catalog(int n) => [

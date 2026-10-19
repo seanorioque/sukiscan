@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/core/money.dart';
+import 'package:tindascan/core/money.dart';
 
 void main() {
   test('parseCents accepts valid input', () {

@@ -18,7 +18,7 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [databaseProvider.overrideWithValue(db)],
-      child: const SukiScanApp(),
+      child: const TindaScanApp(),
     ),
   );
 }

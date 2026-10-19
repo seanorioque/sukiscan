@@ -1,5 +1,5 @@
-import 'package:sukiscan/data/sync_repository.dart';
-import 'package:sukiscan/domain/item.dart';
+import 'package:tindascan/data/sync_repository.dart';
+import 'package:tindascan/domain/item.dart';
 
 /// In-memory SyncRepository for widget tests: records calls, can be made to fail.
 class FakeSyncRepo implements SyncRepository {

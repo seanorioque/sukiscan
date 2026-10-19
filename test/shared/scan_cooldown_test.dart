@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/shared/scan_cooldown.dart';
+import 'package:tindascan/shared/scan_cooldown.dart';
 
 void main() {
   var t = DateTime(2026);

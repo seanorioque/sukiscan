@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/data/sync_repository.dart';
-import 'package:sukiscan/features/sync/merge_preview.dart';
+import 'package:tindascan/data/sync_repository.dart';
+import 'package:tindascan/features/sync/merge_preview.dart';
 
 Future<void> show(WidgetTester tester, MergeSummary s) => tester.pumpWidget(
   MaterialApp(

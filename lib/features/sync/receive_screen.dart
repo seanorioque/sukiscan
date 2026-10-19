@@ -59,7 +59,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
         FrameResult.accepted || FrameResult.duplicate => null,
         FrameResult.otherSession =>
           'That code is from a different transfer, so it was ignored.',
-        FrameResult.invalid => 'That QR code is not from SukiScan.',
+        FrameResult.invalid => 'That QR code is not from TindaScan.',
       };
     });
     if (_frames.isComplete) await _finish();
@@ -85,7 +85,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
       );
     } on FormatException {
       _fail(
-        'Those codes are not a valid SukiScan item list. Nothing was saved.',
+        'Those codes are not a valid TindaScan item list. Nothing was saved.',
       );
     } catch (_) {
       _fail('Something went wrong reading the transfer. Nothing was saved.');

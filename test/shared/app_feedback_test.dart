@@ -1,10 +1,12 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 void main() {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
-  final calls = <MethodCall>[];
+  final calls = <MethodCall>[]; // vibrations
+  final beeps = <String>[];
+  var beepFails = false;
 
   void mockPlatform([Future<Object?> Function(MethodCall)? handler]) {
     binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -17,8 +19,17 @@ void main() {
     );
   }
 
+  Future<void> record(String name) async {
+    if (beepFails) throw PlatformException(code: 'no audio');
+    beeps.add(name);
+  }
+
+  AppFeedback feedback() => AppFeedback(beep: record);
+
   setUp(() {
     calls.clear();
+    beeps.clear();
+    beepFails = false;
     mockPlatform();
   });
   tearDown(
@@ -30,51 +41,48 @@ void main() {
 
   Future<void> settle() => Future<void>.delayed(Duration.zero);
 
-  test('scan: system click + medium tick', () async {
-    const AppFeedback().scan();
+  test('scan: short beep + medium tick', () async {
+    feedback().scan();
     await settle();
 
-    expect(calls.map((c) => c.method), [
-      'SystemSound.play',
-      'HapticFeedback.vibrate',
-    ]);
-    expect(calls[0].arguments, 'SystemSoundType.click');
-    expect(calls[1].arguments, 'HapticFeedbackType.mediumImpact');
+    expect(beeps, ['scan']);
+    expect(calls.single.method, 'HapticFeedback.vibrate');
+    expect(calls.single.arguments, 'HapticFeedbackType.mediumImpact');
   });
 
-  test('success: system click + strong tick', () async {
-    const AppFeedback().success();
+  test('success: two-note beep + strong tick', () async {
+    feedback().success();
     await settle();
 
-    expect(calls[0].arguments, 'SystemSoundType.click');
-    expect(calls[1].arguments, 'HapticFeedbackType.heavyImpact');
+    expect(beeps, ['success']);
+    expect(calls.single.arguments, 'HapticFeedbackType.heavyImpact');
   });
 
-  test('error: one long buzz and no click', () async {
-    const AppFeedback().error();
+  test('error: low buzz + one long vibration', () async {
+    feedback().error();
     await settle();
 
-    expect(calls.map((c) => c.method), ['HapticFeedback.vibrate']);
+    expect(beeps, ['error']);
+    expect(calls.single.method, 'HapticFeedback.vibrate');
     expect(calls.single.arguments, isNull); // plain vibrate()
   });
 
-  test('the three kinds feel different', () async {
-    const f = AppFeedback();
+  test('the three kinds sound and feel different', () async {
+    final f = feedback();
     f.scan();
     f.success();
     f.error();
     await settle();
-    final haptics = [
-      for (final c in calls)
-        if (c.method == 'HapticFeedback.vibrate') c.arguments,
-    ];
-    expect(haptics.toSet(), hasLength(3));
+
+    expect(beeps.toSet(), hasLength(3));
+    expect({for (final c in calls) c.arguments}, hasLength(3));
   });
 
   test('a platform failure never throws into the calling flow', () async {
     mockPlatform((call) async => throw PlatformException(code: 'no vibrator'));
+    beepFails = true;
 
-    const f = AppFeedback();
+    final f = feedback();
     f.scan();
     f.success();
     f.error();

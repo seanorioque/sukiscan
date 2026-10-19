@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/app.dart';
-import 'package:sukiscan/core/theme.dart';
-import 'package:sukiscan/data/item_repository.dart';
-import 'package:sukiscan/domain/item.dart';
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/app.dart';
+import 'package:tindascan/core/theme.dart';
+import 'package:tindascan/data/item_repository.dart';
+import 'package:tindascan/domain/item.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 import 'helpers/fake_item_repo.dart';
 import 'helpers/recording_feedback.dart';
@@ -59,7 +59,7 @@ void main() {
           itemRepositoryProvider.overrideWithValue(repo),
           feedbackProvider.overrideWithValue(RecordingFeedback()),
         ],
-        child: SukiScanApp(
+        child: TindaScanApp(
           scannerBuilder: (onScan) {
             scan = onScan;
             return _CameraProbe(cameras);
@@ -84,13 +84,13 @@ void main() {
   }
 
   group('top bar', () {
-    testWidgets('shows the SukiScan wordmark and a menu button on the right', (
+    testWidgets('shows the TindaScan wordmark and a menu button on the right', (
       tester,
     ) async {
       await pumpApp(tester);
 
       expect(find.byKey(const Key('brand-logo')), findsOneWidget);
-      expect(find.bySemanticsLabel('SukiScan'), findsOneWidget);
+      expect(find.bySemanticsLabel('TindaScan'), findsOneWidget);
       final menu = find.byTooltip('Menu');
       expect(menu, findsOneWidget);
 
@@ -101,7 +101,7 @@ void main() {
 
     testWidgets('the wordmark is on every tab', (tester) async {
       await pumpApp(tester);
-      for (final tab in ['Encode', 'Read', 'Sell']) {
+      for (final tab in ['Add Items', 'Check Price', 'Sell']) {
         await goTo(tester, tab);
         expect(
           find.byKey(const Key('brand-logo')),
@@ -109,6 +109,18 @@ void main() {
           reason: tab,
         );
       }
+    });
+
+    testWidgets('Purchase history is in the menu and opens its screen', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+      await tester.tap(find.byTooltip('Menu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Purchase history'));
+      await tester.pumpAndSettle();
+      expect(find.text('Purchase history'), findsOneWidget); // its app bar
+      expect(find.byType(BackButton), findsOneWidget);
     });
 
     testWidgets('Sync opens the sync screen and back returns to the tab', (
@@ -133,7 +145,7 @@ void main() {
       await pumpApp(tester);
 
       final bar = find.byType(NavigationBar);
-      for (final label in ['Encode', 'Read', 'Sell']) {
+      for (final label in ['Add Items', 'Check Price', 'Sell']) {
         expect(
           find.descendant(of: bar, matching: find.text(label)),
           findsOneWidget,
@@ -147,12 +159,12 @@ void main() {
     testWidgets('each tab shows its own screen', (tester) async {
       await pumpApp(tester);
 
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
       expect(selectedTab(tester), 0);
       expect(find.text('Items (2)'), findsOneWidget);
       expect(find.text('Pancit Canton'), findsOneWidget);
 
-      await goTo(tester, 'Read');
+      await goTo(tester, 'Check Price');
       expect(selectedTab(tester), 1);
       expect(find.text('Point the camera at a barcode'), findsOneWidget);
 
@@ -165,10 +177,10 @@ void main() {
       await pumpApp(tester);
       expect(cameras.value, 1); // Sell
 
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
       expect(cameras.value, 0); // the items list has no camera
 
-      await goTo(tester, 'Read');
+      await goTo(tester, 'Check Price');
       expect(cameras.value, 1);
 
       await goTo(tester, 'Sell');
@@ -207,7 +219,7 @@ void main() {
         findsOneWidget,
       );
 
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
       await goTo(tester, 'Sell');
       expect(find.text('Pancit Canton'), findsOneWidget); // cart kept
       expect(find.text('Gum'), findsOneWidget);
@@ -217,7 +229,7 @@ void main() {
   group('look', () {
     testWidgets('cards are rounded and outlined', (tester) async {
       await pumpApp(tester);
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
 
       final card = tester.widget<Card>(find.byType(Card).first);
       final shape = card.shape as RoundedRectangleBorder?;
@@ -259,7 +271,7 @@ void main() {
     var retried = 0;
     await tester.pumpWidget(StartupErrorApp(onRetry: () => retried++));
 
-    expect(find.text("SukiScan couldn't open your items"), findsOneWidget);
+    expect(find.text("TindaScan couldn't open your items"), findsOneWidget);
     expect(find.textContaining('free storage space'), findsOneWidget);
     expect(find.textContaining('have not been deleted'), findsOneWidget);
 

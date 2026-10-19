@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:sukiscan/shared/scanner_view.dart';
+import 'package:tindascan/shared/scanner_view.dart';
 
 void main() {
   var retries = 0;
@@ -25,7 +25,7 @@ void main() {
   ) async {
     await show(tester, MobileScannerErrorCode.permissionDenied);
     expect(find.textContaining('Camera permission is needed'), findsOneWidget);
-    expect(find.textContaining('Settings > Apps > SukiScan'), findsOneWidget);
+    expect(find.textContaining('Settings > Apps > TindaScan'), findsOneWidget);
 
     await tester.tap(find.text('Retry'));
     expect(retries, 1);

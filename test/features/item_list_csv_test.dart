@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sukiscan/core/clock.dart';
-import 'package:sukiscan/data/csv_files.dart';
-import 'package:sukiscan/data/item_repository.dart';
-import 'package:sukiscan/domain/item.dart';
-import 'package:sukiscan/features/encode/item_list_screen.dart';
-import 'package:sukiscan/shared/app_feedback.dart';
+import 'package:tindascan/core/clock.dart';
+import 'package:tindascan/data/csv_files.dart';
+import 'package:tindascan/data/item_repository.dart';
+import 'package:tindascan/domain/item.dart';
+import 'package:tindascan/features/encode/item_list_screen.dart';
+import 'package:tindascan/shared/app_feedback.dart';
 
 import '../helpers/fake_csv_files.dart';
 import '../helpers/fake_item_repo.dart';
@@ -80,7 +80,7 @@ void main() {
       await tapExport(tester);
 
       expect(csv.saved, hasLength(1));
-      expect(csv.saved.single.name, 'sukiscan-items-2026-10-16.csv');
+      expect(csv.saved.single.name, 'tindascan-items-2026-10-16.csv');
       // A UTF-8 byte order mark first, so Excel reads names like "Piña" right.
       expect(csv.saved.single.bytes.take(3), [0xEF, 0xBB, 0xBF]);
       expect(

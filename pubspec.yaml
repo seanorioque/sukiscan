@@ -1,4 +1,4 @@
-name: sukiscan
+name: tindascan
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -34,11 +34,11 @@ dependencies:
   mobile_scanner: ^7.4.2
   qr_flutter: ^4.1.0
   sqflite: ^2.4.4+2
-  path: ^1.9.1
   flutter_riverpod: ^3.4.3
   intl: ^0.20.3
-  uuid: ^4.6.0
   file_picker: ^13.1.0
+  local_auth: ^3.0.2
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +62,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/sounds/
+    - assets/logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

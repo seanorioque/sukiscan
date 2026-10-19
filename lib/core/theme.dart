@@ -83,7 +83,7 @@ ThemeData appTheme(Brightness brightness) {
       shape: rounded,
     ),
     navigationBarTheme: NavigationBarThemeData(
-      height: 68,
+      height: 84,
       elevation: 0,
       backgroundColor: scheme.surfaceContainer,
       surfaceTintColor: Colors.transparent,
@@ -91,6 +91,7 @@ ThemeData appTheme(Brightness brightness) {
       indicatorShape: const StadiumBorder(),
       iconTheme: WidgetStateProperty.resolveWith(
         (states) => IconThemeData(
+          size: 30,
           color: states.contains(WidgetState.selected)
               ? scheme.onPrimary
               : scheme.onSurfaceVariant,
@@ -98,7 +99,7 @@ ThemeData appTheme(Brightness brightness) {
       ),
       labelTextStyle: WidgetStateProperty.resolveWith(
         (states) => TextStyle(
-          fontSize: 12,
+          fontSize: 15,
           fontWeight: states.contains(WidgetState.selected)
               ? FontWeight.w700
               : FontWeight.w500,

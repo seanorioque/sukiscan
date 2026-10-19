@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 
-/// Vibrant indigo-violet accent; everything else is derived from it.
-const _seed = Color(0xFF5B4BFF);
+/// Logo palette: roof red (seed), signboard mustard, cream wall, dark ink.
+const _seed = Color(0xFFA8321F);
+const _mustard = Color(0xFFE8A323);
+const _cream = Color(0xFFF6EBDA);
+const _ink = Color(0xFF231815);
 
 /// Light and dark share one look: soft rounded cards, filled rounded inputs, a
 /// bold accent pill on the active bottom-navigation tab.
 ThemeData appTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(seedColor: _seed, brightness: brightness);
+  final dark = brightness == Brightness.dark;
+  final scheme = ColorScheme.fromSeed(seedColor: _seed, brightness: brightness)
+      .copyWith(
+        primary: dark ? const Color(0xFFFFB4A5) : _seed,
+        onPrimary: dark ? const Color(0xFF561100) : Colors.white,
+        secondary: _mustard,
+        onSecondary: _ink,
+        secondaryContainer: dark ? const Color(0xFF5A4000) : const Color(0xFFFFE2A0),
+        onSecondaryContainer: dark ? const Color(0xFFFFE2A0) : const Color(0xFF3B2A00),
+        surface: dark ? _ink : _cream,
+        onSurface: dark ? _cream : _ink,
+      );
   final rounded = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(14),
   );

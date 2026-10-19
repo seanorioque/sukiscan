@@ -1,10 +1,11 @@
 import 'package:intl/intl.dart';
 
 final _pesos = NumberFormat.decimalPattern('en_US');
-final _input = RegExp(r'^(\d+)(?:\.(\d{1,2}))?$');
+final _input = RegExp(r'^(\d{1,9})(?:\.(\d{1,2}))?$');
 
 /// Parses user input like "12.5" or "1,234.50" into centavos (1250 / 123450).
-/// Returns null for anything else (empty, negative, 3+ decimals, letters).
+/// Returns null for anything else (empty, negative, 3+ decimals, letters,
+/// more than 9 peso digits, which would overflow web ints).
 int? parseCents(String input) {
   final m = _input.firstMatch(input.trim().replaceAll(',', ''));
   if (m == null) return null;

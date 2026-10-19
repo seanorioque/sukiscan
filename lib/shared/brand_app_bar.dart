@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// The app name as a small wordmark: a gradient scanner badge + "Tinda" in a
+/// The app name as a small wordmark: the sari-sari store logo + "Tinda" in a
 /// light weight and "Scan" in heavy accent colour.
 class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key});
@@ -14,23 +14,7 @@ class BrandLogo extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(11),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [scheme.primary, scheme.tertiary],
-              ),
-            ),
-            child: Icon(
-              Icons.qr_code_scanner,
-              color: scheme.onPrimary,
-              size: 22,
-            ),
-          ),
+          Image.asset('assets/logo.png', height: 40),
           const SizedBox(width: 10),
           Text.rich(
             TextSpan(

@@ -50,26 +50,26 @@ class _AppShellState extends ConsumerState<AppShell> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
           const NavigationDestination(
-            icon: Icon(Icons.edit_note_outlined),
-            selectedIcon: Icon(Icons.edit_note),
-            label: 'Encode',
+            icon: Icon(Icons.inventory_2_outlined),
+            selectedIcon: Icon(Icons.inventory_2),
+            label: 'Add Items',
           ),
           const NavigationDestination(
-            icon: Icon(Icons.center_focus_weak),
-            selectedIcon: Icon(Icons.center_focus_strong),
-            label: 'Read',
+            icon: Icon(Icons.sell_outlined),
+            selectedIcon: Icon(Icons.sell),
+            label: 'Check Price',
           ),
           NavigationDestination(
             // A badge shows how many different items are in the cart.
             icon: Badge(
               isLabelVisible: cartLines > 0,
               label: Text('$cartLines'),
-              child: const Icon(Icons.shopping_cart_outlined),
+              child: const Icon(Icons.point_of_sale_outlined),
             ),
             selectedIcon: Badge(
               isLabelVisible: cartLines > 0,
               label: Text('$cartLines'),
-              child: const Icon(Icons.shopping_cart),
+              child: const Icon(Icons.point_of_sale),
             ),
             label: 'Sell',
           ),

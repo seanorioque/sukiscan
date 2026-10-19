@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:uuid/uuid.dart';
 
 import '../core/clock.dart';
 import '../core/db.dart';
@@ -14,7 +13,8 @@ final saleRepositoryProvider = Provider(
 
 class SaleRepository {
   SaleRepository(this._db, this._now, {String Function()? newId})
-    : _newId = newId ?? (() => const Uuid().v4());
+    : _newId =
+          newId ?? (() => DateTime.now().microsecondsSinceEpoch.toString());
 
   final Database _db;
   final Clock _now;

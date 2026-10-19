@@ -1,4 +1,4 @@
-package com.seanorioque.sukiscan
+package com.seanorioque.TindaScan
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

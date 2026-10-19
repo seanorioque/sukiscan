@@ -1,4 +1,3 @@
-import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +42,7 @@ CREATE TABLE sale_items (
 Future<Database> openAppDb({DatabaseFactory? factory, String? path}) async {
   final f = factory ?? databaseFactory;
   return f.openDatabase(
-    path ?? p.join(await f.getDatabasesPath(), 'sukiscan.db'),
+    path ?? '${await f.getDatabasesPath()}/sukiscan.db',
     options: OpenDatabaseOptions(
       version: dbVersion,
       // SQLite ignores ON DELETE CASCADE unless this is on.

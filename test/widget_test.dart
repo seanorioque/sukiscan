@@ -101,7 +101,7 @@ void main() {
 
     testWidgets('the wordmark is on every tab', (tester) async {
       await pumpApp(tester);
-      for (final tab in ['Encode', 'Read', 'Sell']) {
+      for (final tab in ['Add Items', 'Check Price', 'Sell']) {
         await goTo(tester, tab);
         expect(
           find.byKey(const Key('brand-logo')),
@@ -145,7 +145,7 @@ void main() {
       await pumpApp(tester);
 
       final bar = find.byType(NavigationBar);
-      for (final label in ['Encode', 'Read', 'Sell']) {
+      for (final label in ['Add Items', 'Check Price', 'Sell']) {
         expect(
           find.descendant(of: bar, matching: find.text(label)),
           findsOneWidget,
@@ -159,12 +159,12 @@ void main() {
     testWidgets('each tab shows its own screen', (tester) async {
       await pumpApp(tester);
 
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
       expect(selectedTab(tester), 0);
       expect(find.text('Items (2)'), findsOneWidget);
       expect(find.text('Pancit Canton'), findsOneWidget);
 
-      await goTo(tester, 'Read');
+      await goTo(tester, 'Check Price');
       expect(selectedTab(tester), 1);
       expect(find.text('Point the camera at a barcode'), findsOneWidget);
 
@@ -177,10 +177,10 @@ void main() {
       await pumpApp(tester);
       expect(cameras.value, 1); // Sell
 
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
       expect(cameras.value, 0); // the items list has no camera
 
-      await goTo(tester, 'Read');
+      await goTo(tester, 'Check Price');
       expect(cameras.value, 1);
 
       await goTo(tester, 'Sell');
@@ -219,7 +219,7 @@ void main() {
         findsOneWidget,
       );
 
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
       await goTo(tester, 'Sell');
       expect(find.text('Pancit Canton'), findsOneWidget); // cart kept
       expect(find.text('Gum'), findsOneWidget);
@@ -229,7 +229,7 @@ void main() {
   group('look', () {
     testWidgets('cards are rounded and outlined', (tester) async {
       await pumpApp(tester);
-      await goTo(tester, 'Encode');
+      await goTo(tester, 'Add Items');
 
       final card = tester.widget<Card>(find.byType(Card).first);
       final shape = card.shape as RoundedRectangleBorder?;
